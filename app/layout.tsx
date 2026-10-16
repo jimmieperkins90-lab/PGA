@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import NavBar from "./_components/NavBar";
 
 const serif = Playfair_Display({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-serif", display: "swap" });
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -14,12 +14,12 @@ export const metadata: Metadata = {
   description: "Daily-lineup golf pool: pick golfers each round, climb the leaderboard.",
 };
 
-async function signOut() {
-  "use server";
-  const supabase = createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
-}
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#07391F",
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -31,30 +31,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     const { data } = await supabase.from("profiles").select("is_admin").eq("user_id", user.id).maybeSingle();
     isAdmin = !!data?.is_admin;
   }
-  const link = "px-3 py-2 rounded text-sm font-semibold hover:bg-white/10 transition-colors";
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <body className="font-body min-h-screen flex flex-col">
-        <header className="bg-pine text-sand border-b-4 border-azalea">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+        <header className="bg-pine text-sand border-b-4 border-azalea pt-[env(safe-area-inset-top)]">
+          <div className="max-w-5xl mx-auto px-4 py-2.5">
             <Link href="/" className="font-display text-xl tracking-wide">
               PGA <span className="text-azalea">Pool</span>
             </Link>
-            {user && (
-              <nav className="flex items-center gap-1">
-                <Link href="/" className={link}>Leaderboard</Link>
-                <Link href="/roster" className={link}>My Roster</Link>
-                <Link href="/tournaments" className={link}>Past</Link>
-                <Link href="/account" className={link}>Account</Link>
-                {isAdmin && <Link href="/admin" className={link}>Admin</Link>}
-                <form action={signOut}>
-                  <button className={link}>Sign out</button>
-                </form>
-              </nav>
-            )}
           </div>
         </header>
-        <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">{children}</main>
+        <main className={`flex-1 max-w-5xl w-full mx-auto px-4 py-4 sm:py-6 ${user ? "pb-28" : "pb-8"}`}>{children}</main>
+        {user && <NavBar isAdmin={isAdmin} />}
       </body>
     </html>
   );

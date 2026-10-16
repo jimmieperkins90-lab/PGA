@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-const input = "w-full border border-pine/30 rounded px-3 py-2";
-const btn = "bg-fairway text-white text-sm font-semibold rounded px-4 py-2 hover:bg-pine disabled:opacity-60";
+const input = "w-full border border-pine/30 rounded px-3 py-3";
+const btn = "min-h-[44px] w-full sm:w-auto bg-fairway text-white text-sm font-semibold rounded px-4 py-2 hover:bg-pine disabled:opacity-60";
 
 export default function AccountForms({ displayName, hasProfile }: { displayName: string; hasProfile: boolean }) {
   const [pw, setPw] = useState("");

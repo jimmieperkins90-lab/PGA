@@ -5,9 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup" | "link";
 
-const input = "w-full border border-pine/30 rounded px-3 py-2";
+const input = "w-full border border-pine/30 rounded px-3 py-3";
 const primary =
-  "w-full bg-fairway text-white font-semibold rounded py-2 hover:bg-pine disabled:opacity-60";
+  "w-full min-h-[48px] bg-fairway text-white font-semibold rounded py-3 hover:bg-pine disabled:opacity-60";
 
 function friendly(msg: string): string {
   if (/rate limit/i.test(msg))
@@ -129,7 +129,7 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => switchTo("link")}
-                className="mt-2 text-sm text-fairway font-semibold underline"
+                className="mt-1 py-2 text-sm text-fairway font-semibold underline"
               >
                 Forgot password?
               </button>
@@ -146,7 +146,7 @@ export default function LoginForm() {
           <>
             <p>
               New here?{" "}
-              <button type="button" onClick={() => switchTo("signup")} className="text-fairway font-semibold underline">
+              <button type="button" onClick={() => switchTo("signup")} className="py-2 text-fairway font-semibold underline">
                 Create an account
               </button>
             </p>
@@ -155,14 +155,14 @@ export default function LoginForm() {
         {mode === "signup" && (
           <p>
             Already have an account?{" "}
-            <button type="button" onClick={() => switchTo("signin")} className="text-fairway font-semibold underline">
+            <button type="button" onClick={() => switchTo("signin")} className="py-2 text-fairway font-semibold underline">
               Sign in
             </button>
           </p>
         )}
         {mode === "link" && (
           <p>
-            <button type="button" onClick={() => switchTo("signin")} className="text-fairway font-semibold underline">
+            <button type="button" onClick={() => switchTo("signin")} className="py-2 text-fairway font-semibold underline">
               Back to password sign in
             </button>
           </p>

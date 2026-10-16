@@ -111,7 +111,7 @@ export default function RosterClient({
               role="tab"
               aria-selected={rn === r.round_no}
               onClick={() => { setRn(r.round_no); setMsg(""); }}
-              className={`flex-1 rounded px-2 py-2 text-sm font-semibold border ${
+              className={`flex-1 min-h-[48px] rounded px-2 py-2 text-sm font-semibold border ${
                 rn === r.round_no ? "bg-fairway text-white border-fairway" : "bg-white border-pine/20 hover:bg-sand"
               }`}
             >
@@ -134,8 +134,8 @@ export default function RosterClient({
             {myRound.map((p) => {
               const g = gById.get(p.golfer_id);
               return (
-                <li key={p.id} className="flex items-center justify-between py-2">
-                  <span>{g?.name ?? "Unknown"}</span>
+                <li key={p.id} className="flex items-center justify-between gap-2 py-1">
+                  <span className="min-w-0 flex-1 truncate">{g?.name ?? "Unknown"}</span>
                   <span className={`font-mono text-sm ${parClass(score(p.golfer_id, rn)?.to_par)}`}>
                     {fmtRound(score(p.golfer_id, rn))}
                   </span>
@@ -143,7 +143,7 @@ export default function RosterClient({
                     <button
                       disabled={pending}
                       onClick={() => run(() => removePick(p.id))}
-                      className="text-sm text-azalea font-semibold hover:underline disabled:opacity-50"
+                      className="min-h-[40px] px-2 text-sm text-azalea font-semibold hover:underline disabled:opacity-50"
                     >
                       Remove
                     </button>
@@ -164,59 +164,79 @@ export default function RosterClient({
 
       {!locked && !eliminated && (
         <div className="bg-white border border-pine/15 rounded-lg">
-          <div className="p-3 border-b border-pine/10">
+          <div className="sticky top-0 z-20 flex items-center gap-3 rounded-t-lg border-b border-pine/10 bg-white p-2">
             <label htmlFor="q" className="sr-only">Search golfers</label>
             <input
               id="q"
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search golfers"
-              className="w-full border border-pine/30 rounded px-3 py-2"
+              autoComplete="off"
+              className="min-w-0 flex-1 border border-pine/30 rounded px-3 py-2.5"
             />
+            <span className="shrink-0 text-xs font-semibold text-pine whitespace-nowrap">
+              {myRound.length}/{limit} picked
+            </span>
           </div>
-          <div className="grid grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_4.5rem] items-center gap-x-1 px-3 py-1.5 text-[11px] font-semibold uppercase text-ink/50 bg-sand/50 border-b border-pine/10">
+          <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_5rem] items-center gap-x-1 px-3 py-1.5 text-[11px] font-semibold uppercase text-ink/50 bg-sand/50 border-b border-pine/10">
             <span>Golfer</span>
             {[1, 2, 3, 4].map((r) => (
               <span key={r} className="text-right">R{r}</span>
             ))}
             <span />
           </div>
-          <ul className="max-h-[28rem] overflow-y-auto divide-y divide-pine/10">
+          <ul className="divide-y divide-pine/10">
             {shown.map((g) => {
               const used = usedIn.get(g.id);
               const notPlaying = afterCut && g.status !== "active";
               const disabled = pending || full || used !== undefined || notPlaying;
+              const anyScore = [1, 2, 3, 4].some((r) => score(g.id, r)?.to_par != null);
               return (
-                <li key={g.id} className="grid grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_4.5rem] items-center gap-x-1 px-3 py-2 text-sm">
-                  <span className={`min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/40" : ""}`}>
+                <li
+                  key={g.id}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_5rem] items-center gap-x-1 gap-y-1 px-3 py-2.5 text-sm"
+                >
+                  <span className={`order-1 sm:order-none min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/40" : ""}`}>
                     <span className="inline-block w-8 font-mono text-xs text-ink/40">
                       {rn === 1 ? (g.sort_order ?? "") : (ordered.pos.get(g.id) ?? "")}
                     </span>
                     {g.name}
                     {g.country && <span className="ml-1 text-xs text-ink/40">{g.country}</span>}
                   </span>
-                  {[1, 2, 3, 4].map((r) => {
-                    const sr = score(g.id, r);
-                    const has = sr && sr.to_par !== null;
-                    return (
-                      <span key={r} className={`text-right font-mono text-xs ${has ? parClass(sr!.to_par) : "text-ink/20"}`}>
-                        {has ? fmtPar(sr!.to_par) : "·"}
-                      </span>
-                    );
-                  })}
-                  {used !== undefined ? (
-                    <span className="text-xs text-ink/50 text-right">Used R{used}</span>
-                  ) : notPlaying ? (
-                    <span className="text-xs text-ink/50 text-right">Out</span>
-                  ) : (
-                    <button
-                      disabled={disabled}
-                      onClick={() => run(() => addPick(tournament.id, rn, g.id))}
-                      className="w-full rounded bg-fairway text-white text-xs font-semibold py-1 hover:bg-pine disabled:opacity-30"
-                    >
-                      Add
-                    </button>
-                  )}
+                  <span
+                    className={`order-3 sm:order-none col-span-2 sm:col-span-1 grid-cols-4 gap-1 pl-8 sm:pl-0 sm:contents ${
+                      anyScore ? "grid" : "hidden sm:contents"
+                    }`}
+                  >
+                    {[1, 2, 3, 4].map((r) => {
+                      const sr = score(g.id, r);
+                      const has = sr && sr.to_par !== null;
+                      return (
+                        <span
+                          key={r}
+                          className={`font-mono text-xs sm:text-right ${has ? parClass(sr!.to_par) : "text-ink/20"}`}
+                        >
+                          <span className="sm:hidden text-ink/40">R{r} </span>
+                          {has ? fmtPar(sr!.to_par) : "·"}
+                        </span>
+                      );
+                    })}
+                  </span>
+                  <span className="order-2 sm:order-none flex justify-end">
+                    {used !== undefined ? (
+                      <span className="text-xs text-ink/50 px-2">Used R{used}</span>
+                    ) : notPlaying ? (
+                      <span className="text-xs text-ink/50 px-2">Out</span>
+                    ) : (
+                      <button
+                        disabled={disabled}
+                        onClick={() => run(() => addPick(tournament.id, rn, g.id))}
+                        className="min-h-[40px] w-20 rounded bg-fairway text-white text-sm font-semibold hover:bg-pine disabled:opacity-30"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </span>
                 </li>
               );
             })}

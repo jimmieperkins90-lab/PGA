@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import AccountForms from "./AccountForms";
+import { signOut } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,11 @@ export default async function Account() {
       <h1 className="font-display text-3xl text-pine">Account</h1>
       <p className="text-sm text-ink/70">Signed in as {user.email}</p>
       <AccountForms displayName={profile?.display_name ?? ""} hasProfile={!!profile} />
+      <form action={signOut}>
+        <button className="w-full min-h-[44px] rounded border border-pine/30 bg-white font-semibold text-pine hover:bg-sand">
+          Sign out
+        </button>
+      </form>
     </div>
   );
 }

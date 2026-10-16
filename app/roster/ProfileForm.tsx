@@ -30,8 +30,8 @@ export default function ProfileForm({
         </p>
       )}
       <label htmlFor="display_name" className="block text-sm font-semibold">Name shown on the leaderboard</label>
-      <input id="display_name" name="display_name" required maxLength={40} className="w-full border border-pine/30 rounded px-3 py-2" />
-      <button disabled={pending} className="w-full bg-fairway text-white font-semibold rounded py-2 hover:bg-pine disabled:opacity-60">
+      <input id="display_name" name="display_name" required maxLength={40} className="w-full border border-pine/30 rounded px-3 py-3" />
+      <button disabled={pending} className="w-full min-h-[48px] bg-fairway text-white font-semibold rounded py-3 hover:bg-pine disabled:opacity-60">
         {pending ? "Joining…" : "Join the pool"}
       </button>
       {err && <p className="text-sm text-azalea">{err}</p>}

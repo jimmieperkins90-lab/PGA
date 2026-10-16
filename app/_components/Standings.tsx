@@ -5,7 +5,8 @@ import { isLocked, type Pick, type Round, type StandRow, type Tournament } from 
 import LiveRefresher from "../LiveRefresher";
 import InfoPanel from "./InfoPanel";
 
-const GRID = "grid grid-cols-[3rem_1fr_repeat(4,2.5rem)_3.25rem]";
+// Phones show # / player / total; the round-by-round numbers appear in the expanded row. Wider screens show all columns.
+const GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] sm:grid-cols-[3rem_minmax(0,1fr)_repeat(4,2.5rem)_3.25rem]";
 
 export default async function Standings({ t, rounds, live }: { t: Tournament; rounds: Round[]; live: boolean }) {
   const db = createClient();
@@ -59,14 +60,17 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
       ) : (
         <div className="bg-white border border-pine/15 rounded-lg overflow-hidden">
           <div className={`${GRID} px-3 py-2 bg-pine text-sand text-xs font-semibold uppercase`}>
-            <span>#</span><span>Player</span><span className="text-right">R1</span><span className="text-right">R2</span>
-            <span className="text-right">R3</span><span className="text-right">R4</span><span className="text-right">Tot</span>
+            <span>#</span><span>Player</span>
+            {[1, 2, 3, 4].map((n) => (
+              <span key={n} className="hidden sm:block text-right">R{n}</span>
+            ))}
+            <span className="text-right">Tot</span>
           </div>
           {rows.map((r) => {
             const mine = allPicks.filter((p) => p.user_id === r.user_id && (!r.is_cut || p.round_no <= t.cut_after_round));
             return (
               <details key={r.user_id} className={`border-t border-pine/10 ${r.is_cut ? "opacity-70" : ""}`}>
-                <summary className={`${GRID} px-3 py-2 cursor-pointer items-center hover:bg-sand/50 list-none`}>
+                <summary className={`${GRID} px-3 min-h-[52px] py-2 cursor-pointer items-center hover:bg-sand/50 list-none`}>
                   <span className={`font-mono text-sm ${r.is_cut ? "text-azalea font-semibold" : ""}`}>{label(r)}</span>
                   <span className="font-semibold truncate">
                     {r.display_name}
@@ -75,11 +79,19 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
                     )}
                   </span>
                   {[r.r1, r.r2, r.r3, r.r4].map((v, i) => (
-                    <span key={i} className={`text-right font-mono text-sm ${parClass(v)}`}>{fmtPar(v)}</span>
+                    <span key={i} className={`hidden sm:block text-right font-mono text-sm ${parClass(v)}`}>{fmtPar(v)}</span>
                   ))}
                   <span className={`text-right font-mono font-semibold ${parClass(r.total)}`}>{fmtPar(r.total)}</span>
                 </summary>
                 <div className="px-3 pb-3 bg-paper text-sm">
+                  <div className="sm:hidden grid grid-cols-4 gap-1 pt-3 text-center">
+                    {[r.r1, r.r2, r.r3, r.r4].map((v, i) => (
+                      <div key={i} className="rounded bg-white border border-pine/10 py-1">
+                        <div className="text-[10px] font-semibold uppercase text-ink/40">R{i + 1}</div>
+                        <div className={`font-mono text-sm ${parClass(v)}`}>{fmtPar(v)}</div>
+                      </div>
+                    ))}
+                  </div>
                   {mine.length === 0 ? (
                     <p className="text-ink/60 pt-2">Picks appear here once each round locks.</p>
                   ) : (
@@ -95,7 +107,7 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
                               const g = gById.get(p.golfer_id);
                               const s = sc(p.golfer_id, rn);
                               return (
-                                <li key={p.id} className="flex justify-between py-0.5">
+                                <li key={p.id} className="flex justify-between gap-2 py-1">
                                   <span>{g?.name ?? "?"}</span>
                                   <span className={`font-mono ${parClass(s?.to_par)}`}>{fmtRound(s)}</span>
                                 </li>

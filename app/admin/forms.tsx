@@ -8,7 +8,7 @@ const init: Result = {};
 function Submit({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
   return (
-    <button disabled={pending} className="bg-fairway text-white text-sm font-semibold rounded px-3 py-2 hover:bg-pine disabled:opacity-60">
+    <button disabled={pending} className="min-h-[44px] bg-fairway text-white text-sm font-semibold rounded px-4 py-2 hover:bg-pine disabled:opacity-60">
       {pending ? "Working…" : children}
     </button>
   );
