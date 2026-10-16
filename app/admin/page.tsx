@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isoToEtLocal } from "@/lib/time";
 import { setActive, setPaid } from "./actions";
-import { CreateForm, CutForm, LockForm, PaymentNoteForm, StatusForm, SyncForm } from "./forms";
+import { CreateForm, CutForm, LockForm, PaymentNoteForm, StatusForm, SyncForm, ThemeForm } from "./forms";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +64,11 @@ export default async function Admin() {
             <h2 className="font-semibold">Pick lock times: {active.name}</h2>
             <p className="text-sm text-ink/70">Set each round to its first tee time. Picks for that round lock then.</p>
             <LockForm tournamentId={active.id} values={[1, 2, 3, 4].map((n) => isoToEtLocal((rounds ?? []).find((r: any) => r.round_no === n)?.lock_at ?? null))} />
+          </section>
+          <section className={card}>
+            <h2 className="font-semibold">Site look</h2>
+            <p className="text-sm text-ink/70">Automatic switches to the Masters look when the tournament name includes &ldquo;Masters&rdquo;. Choose Masters or Classic to preview or override.</p>
+            <ThemeForm tournamentId={active.id} theme={active.theme ?? "auto"} />
           </section>
           <section className={card}>
             <h2 className="font-semibold">Payments</h2>

@@ -10,6 +10,7 @@ export type Tournament = {
   cut_applied: boolean;
   payment_note: string | null;
   completed_at: string | null;
+  theme: "auto" | "classic" | "masters";
   is_active: boolean;
 };
 export type Round = { tournament_id: string; round_no: number; lock_at: string | null };

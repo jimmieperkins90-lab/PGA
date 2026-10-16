@@ -45,7 +45,7 @@ export default function NavBar({ isAdmin }: { isAdmin: boolean }) {
   return (
     <nav
       aria-label="Main"
-      className="fixed bottom-0 inset-x-0 z-40 bg-pine text-sand border-t-4 border-azalea pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 inset-x-0 z-40 bg-pine text-sand border-t-4 border-trim pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="max-w-5xl mx-auto flex">
         {tabs.map((t) => (

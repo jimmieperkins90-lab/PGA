@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import NavBar from "./_components/NavBar";
+import { brandWords, resolveTheme } from "@/lib/theme";
 
 const serif = Playfair_Display({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-serif", display: "swap" });
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -26,18 +27,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const { data: activeT } = await supabase
+    .from("tournaments")
+    .select("name, theme")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const theme = resolveTheme(activeT);
+  const [brandA, brandB] = brandWords(theme);
   let isAdmin = false;
   if (user) {
     const { data } = await supabase.from("profiles").select("is_admin").eq("user_id", user.id).maybeSingle();
     isAdmin = !!data?.is_admin;
   }
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <html lang="en" data-theme={theme} className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <body className="font-body min-h-screen flex flex-col">
-        <header className="bg-pine text-sand border-b-4 border-azalea pt-[env(safe-area-inset-top)]">
+        <header className="bg-pine text-sand border-b-4 border-trim pt-[env(safe-area-inset-top)]">
           <div className="max-w-5xl mx-auto px-4 py-2.5">
             <Link href="/" className="font-display text-xl tracking-wide">
-              PGA <span className="text-azalea">Pool</span>
+              {brandA} <span className="text-trim">{brandB}</span>
             </Link>
           </div>
         </header>

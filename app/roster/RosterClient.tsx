@@ -47,6 +47,12 @@ export default function RosterClient({
   const full = myRound.length >= limit;
   const afterCut = rn > tournament.cut_after_round;
   const eliminated = isCut && afterCut;
+  const openSlots = eliminated ? 0 : Math.max(limit - myRound.length, 0);
+  const incomplete = !locked && openSlots > 0;
+  const tabIncomplete = (r: Round) =>
+    !isLocked(r) &&
+    !(isCut && r.round_no > tournament.cut_after_round) &&
+    picks.filter((p) => p.round_no === r.round_no).length < (tournament.picks_per_round[r.round_no - 1] ?? 0);
   const score = (gid: string, r: number) => scores.find((x) => x.golfer_id === gid && x.round_no === r);
   const gById = useMemo(() => new Map(golfers.map((g) => [g.id, g])), [golfers]);
   const usedIn = useMemo(() => new Map(picks.map((p) => [p.golfer_id, p.round_no])), [picks]);
@@ -190,43 +196,67 @@ export default function RosterClient({
               }`}
             >
               R{r.round_no}
+              {tabIncomplete(r) && (
+                <span aria-label="Lineup incomplete" className="ml-1 inline-block h-2 w-2 rounded-full bg-gold align-middle ring-1 ring-black/20" />
+              )}
               <span className="block text-xs font-normal opacity-80">{n}/{l}{isLocked(r) ? " · locked" : ""}</span>
             </button>
           );
         })}
       </div>
 
+      {incomplete && (
+        <p className="mb-3 rounded border border-gold/60 bg-gold/15 px-3 py-2 text-sm font-semibold text-ink" role="status">
+          Round {rn} lineup incomplete: {openSlots} open {openSlots === 1 ? "spot" : "spots"}. {lockText(round?.lock_at ?? null)}.
+        </p>
+      )}
       <div className="bg-white border border-pine/15 rounded-lg p-4 mb-4">
-        <div className="flex justify-between items-baseline mb-2">
+        <div className="flex items-center justify-between gap-2 mb-2">
           <h2 className="font-semibold">Round {rn} lineup ({myRound.length}/{limit})</h2>
-          <span className="text-xs text-ink/60">{locked ? "Locked" : lockText(round?.lock_at ?? null)}</span>
+          {locked ? (
+            <span className="text-xs font-semibold text-ink/60">Locked</span>
+          ) : eliminated ? null : incomplete ? (
+            <span className="rounded-full bg-gold/25 px-2 py-0.5 text-xs font-semibold text-ink">{openSlots} open</span>
+          ) : (
+            <span className="rounded-full bg-fairway/15 px-2 py-0.5 text-xs font-semibold text-fairway">Lineup set</span>
+          )}
         </div>
-        {myRound.length === 0 ? (
-          <p className="text-sm text-ink/60">No golfers picked for this round yet.</p>
-        ) : (
-          <ul className="divide-y divide-pine/10">
-            {myRound.map((p) => {
-              const g = gById.get(p.golfer_id);
-              return (
-                <li key={p.id} className="flex items-center justify-between gap-2 py-1">
-                  <span className="min-w-0 flex-1 truncate">{g?.name ?? "Unknown"}</span>
-                  <span className={`font-mono text-sm ${parClass(score(p.golfer_id, rn)?.to_par)}`}>
-                    {fmtRound(score(p.golfer_id, rn))}
-                  </span>
-                  {!locked && (
-                    <button
-                      disabled={pending}
-                      onClick={() => run(() => removePick(p.id))}
-                      className="min-h-[40px] px-2 text-sm text-azalea font-semibold hover:underline disabled:opacity-50"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <ul className="space-y-1.5">
+          {myRound.map((p) => {
+            const g = gById.get(p.golfer_id);
+            return (
+              <li key={p.id} className="flex min-h-[44px] items-center justify-between gap-2 rounded border border-pine/10 bg-paper px-3">
+                <span className="min-w-0 flex-1 truncate">{g?.name ?? "Unknown"}</span>
+                <span className={`font-mono text-sm ${parClass(score(p.golfer_id, rn)?.to_par)}`}>
+                  {fmtRound(score(p.golfer_id, rn))}
+                </span>
+                {!locked && (
+                  <button
+                    disabled={pending}
+                    onClick={() => run(() => removePick(p.id))}
+                    className="min-h-[40px] px-2 text-sm text-azalea font-semibold hover:underline disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                )}
+              </li>
+            );
+          })}
+          {Array.from({ length: openSlots }).map((_, i) => (
+            <li
+              key={`open-${i}`}
+              className={`flex min-h-[44px] items-center justify-between gap-2 rounded border border-dashed px-3 text-sm ${
+                locked ? "border-pine/20 text-ink/40" : "border-gold bg-gold/10 text-ink/70"
+              }`}
+            >
+              <span className="italic">{locked ? "Empty slot (locked)" : `Open slot ${myRound.length + i + 1} of ${limit}`}</span>
+              {!locked && <span className="text-xs font-semibold text-fairway">Pick below</span>}
+            </li>
+          ))}
+          {myRound.length === 0 && openSlots === 0 && (
+            <li className="text-sm text-ink/60">No picks this round.</li>
+          )}
+        </ul>
         {msg && <p className="text-sm text-azalea mt-2" role="alert">{msg}</p>}
       </div>
 

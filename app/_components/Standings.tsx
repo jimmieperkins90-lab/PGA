@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { fmtLock, getField } from "@/lib/data";
 import { fmtPar, fmtRound, parClass } from "@/lib/format";
@@ -35,6 +36,23 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
     return `${tied ? "T" : ""}${placeOf(r)}`;
   };
 
+  // Cut line: projected from the current standings until the cut is applied, then the actual line.
+  const n = rows.length;
+  let lineIdx = -1;
+  let lineText = "";
+  if (!done && t.cut_mode !== "off" && n > 1) {
+    if (t.cut_applied) {
+      lineIdx = rows.findIndex((r) => r.is_cut);
+      if (lineIdx > 0) lineText = `Cut line \u00b7 ${lineIdx} of ${n} entries advanced`;
+    } else if (isLocked(rounds[0])) {
+      const raw = t.cut_mode === "percent" ? Math.ceil((n * t.cut_value) / 100) : t.cut_value;
+      const survive = Math.min(Math.max(raw, 1), n);
+      const lineTotal = rows.map((r) => r.total).sort((a, b) => a - b)[survive - 1];
+      lineIdx = rows.findIndex((r) => r.total > lineTotal);
+      if (lineIdx > 0) lineText = `Projected cut line (${fmtPar(lineTotal)}) \u00b7 ${lineIdx} of ${n} entries on pace to advance`;
+    }
+  }
+
   const nextRound = live ? rounds.find((r) => !isLocked(r)) : undefined;
   return (
     <div>
@@ -62,10 +80,19 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
             ))}
             <span className="text-right">Tot</span>
           </div>
-          {rows.map((r) => {
+          {rows.map((r, i) => {
             const mine = allPicks.filter((p) => p.user_id === r.user_id && (!r.is_cut || p.round_no <= t.cut_after_round));
             return (
-              <details key={r.user_id} className={`border-t border-pine/10 ${r.is_cut ? "opacity-70" : ""}`}>
+              <Fragment key={r.user_id}>
+              {i === lineIdx && lineText && (
+                <div
+                  role="separator"
+                  className="border-t-2 border-dashed border-azalea/70 bg-azalea/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-azalea"
+                >
+                  {lineText}
+                </div>
+              )}
+              <details className={`border-t border-pine/10 ${r.is_cut ? "opacity-70" : ""}`}>
                 <summary className={`${GRID} px-3 min-h-[52px] py-2 cursor-pointer items-center hover:bg-sand/50 list-none`}>
                   <span className={`font-mono text-sm ${r.is_cut ? "text-azalea font-semibold" : ""}`}>{label(r)}</span>
                   <span className="font-semibold truncate">
@@ -122,6 +149,7 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
                   {r.is_cut && <p className="text-xs text-azalea pt-1">Cut after Round {t.cut_after_round}. Score is final.</p>}
                 </div>
               </details>
+              </Fragment>
             );
           })}
         </div>

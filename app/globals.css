@@ -2,11 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Colors are stored as RGB triplets so Tailwind opacity modifiers (e.g. border-pine/15) keep working. */
+:root {
+  --c-pine: 7 57 31;
+  --c-fairway: 11 93 59;
+  --c-azalea: 214 51 108;
+  --c-sand: 244 235 208;
+  --c-paper: 251 248 238;
+  --c-ink: 21 35 27;
+  --c-gold: 201 162 39;
+  --c-trim: 214 51 108;
+}
+/* Masters theme: Augusta green, white board, yellow trim, red for under-par */
+[data-theme="masters"] {
+  --c-pine: 0 71 46;
+  --c-fairway: 0 103 71;
+  --c-azalea: 200 16 46;
+  --c-sand: 230 238 232;
+  --c-paper: 247 250 247;
+  --c-ink: 17 24 20;
+  --c-gold: 249 195 0;
+  --c-trim: 249 195 0;
+}
+
 html { -webkit-text-size-adjust: 100%; }
-body { background-color: #FBF8EE; color: #15231B; }
+body { background-color: rgb(var(--c-paper)); color: rgb(var(--c-ink)); }
 /* 16px form text stops iOS from zooming the page when a field is tapped */
 input, select, textarea { font-size: 16px; }
 button, a, summary { touch-action: manipulation; }
 a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible {
-  outline: 3px solid #D6336C; outline-offset: 2px;
+  outline: 3px solid rgb(var(--c-azalea)); outline-offset: 2px;
 }

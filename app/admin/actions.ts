@@ -148,3 +148,14 @@ export async function setPaid(tournamentId: string, userId: string, paid: boolea
   revalidatePath("/");
   revalidatePath("/roster");
 }
+
+export async function setTheme(tournamentId: string, _: Result, fd: FormData): Promise<Result> {
+  const db = createClient();
+  if (!(await requireAdmin(db))) return { error: "Admins only." };
+  const theme = String(fd.get("theme") ?? "");
+  if (!["auto", "classic", "masters"].includes(theme)) return { error: "Choose a theme." };
+  const { error } = await db.from("tournaments").update({ theme }).eq("id", tournamentId);
+  if (error) return { error: error.message };
+  revalidatePath("/", "layout");
+  return { ok: "Theme saved." };
+}

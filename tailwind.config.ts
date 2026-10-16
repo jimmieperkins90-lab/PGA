@@ -5,13 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        azalea: "#D6336C",
-        fairway: "#0B5D3B",
-        pine: "#07391F",
-        sand: "#F4EBD0",
-        paper: "#FBF8EE",
-        ink: "#15231B",
-        gold: "#C9A227",
+        azalea: "rgb(var(--c-azalea) / <alpha-value>)",
+        fairway: "rgb(var(--c-fairway) / <alpha-value>)",
+        pine: "rgb(var(--c-pine) / <alpha-value>)",
+        sand: "rgb(var(--c-sand) / <alpha-value>)",
+        paper: "rgb(var(--c-paper) / <alpha-value>)",
+        ink: "rgb(var(--c-ink) / <alpha-value>)",
+        gold: "rgb(var(--c-gold) / <alpha-value>)",
+        trim: "rgb(var(--c-trim) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-serif)", "serif"],
