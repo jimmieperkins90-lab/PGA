@@ -15,7 +15,7 @@
   --c-trim: 249 195 0;
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; height: 100%; }
 body { background-color: rgb(var(--c-paper)); color: rgb(var(--c-ink)); }
 /* 16px form text stops iOS from zooming the page when a field is tapped */
 input, select, textarea { font-size: 16px; }

@@ -30,15 +30,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
-      <body className="font-body min-h-screen flex flex-col">
-        <header className="bg-pine text-sand border-b-4 border-trim pt-[env(safe-area-inset-top)]">
+      <body className="font-body flex h-[100dvh] flex-col overflow-hidden">
+        <header className="shrink-0 bg-pine text-sand border-b-4 border-trim pt-[env(safe-area-inset-top)]">
           <div className="max-w-5xl mx-auto px-4 py-2.5">
             <Link href="/" className="font-display text-xl tracking-wide">
               Masters <span className="text-trim">Pool</span>
             </Link>
           </div>
         </header>
-        <main className={`flex-1 max-w-5xl w-full mx-auto px-4 py-4 sm:py-6 ${user ? "pb-28" : "pb-8"}`}>{children}</main>
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <main className="max-w-5xl w-full mx-auto px-4 py-4 sm:py-6 pb-8">{children}</main>
+        </div>
         {user && <NavBar isAdmin={isAdmin} />}
       </body>
     </html>
