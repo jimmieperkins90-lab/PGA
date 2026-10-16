@@ -5,6 +5,12 @@ import { usePathname } from "next/navigation";
 const ICONS: Record<string, React.ReactNode> = {
   board: <path d="M5 20v-9M12 20V5M19 20v-7" />,
   roster: <path d="M9 6h11M9 12h11M9 18h11M4 6.5l1 1 2-2M4 12.5l1 1 2-2M4 18.5l1 1 2-2" />,
+  rules: (
+    <>
+      <path d="M6 3h9l4 4v14H6z" />
+      <path d="M14 3v5h5M9 13h7M9 17h7" />
+    </>
+  ),
   past: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -29,9 +35,10 @@ const ICONS: Record<string, React.ReactNode> = {
 export default function NavBar({ isAdmin }: { isAdmin: boolean }) {
   const path = usePathname() || "/";
   const tabs = [
-    { href: "/", label: "Leaderboard", icon: "board", active: path === "/" },
-    { href: "/roster", label: "My Roster", icon: "roster", active: path.startsWith("/roster") },
+    { href: "/", label: "Board", icon: "board", active: path === "/" },
+    { href: "/roster", label: "Roster", icon: "roster", active: path.startsWith("/roster") },
     { href: "/tournaments", label: "Past", icon: "past", active: path.startsWith("/tournaments") },
+    { href: "/rules", label: "Rules", icon: "rules", active: path.startsWith("/rules") },
     { href: "/account", label: "Account", icon: "account", active: path.startsWith("/account") },
     ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: "admin", active: path.startsWith("/admin") }] : []),
   ];
