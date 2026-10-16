@@ -47,7 +47,34 @@ export default function RosterClient({
   const gById = useMemo(() => new Map(golfers.map((g) => [g.id, g])), [golfers]);
   const usedIn = useMemo(() => new Map(picks.map((p) => [p.golfer_id, p.round_no])), [picks]);
 
-  const shown = golfers.filter((g) => g.name.toLowerCase().includes(q.trim().toLowerCase()));
+  // Round 1: ESPN's pre-tournament order. Rounds 2-4: current leaderboard order (total to par so far).
+  const ordered = useMemo(() => {
+    const byOrder = (a: Golfer, b: Golfer) =>
+      (a.sort_order ?? 9999) - (b.sort_order ?? 9999) || a.name.localeCompare(b.name);
+    if (rn === 1) return { list: [...golfers].sort(byOrder), pos: new Map<string, string>() };
+    const total = (g: Golfer) => {
+      const mine = scores.filter((x) => x.golfer_id === g.id && x.round_no < rn && x.to_par !== null);
+      return mine.length ? mine.reduce((a, x) => a + (x.to_par as number), 0) : null;
+    };
+    const playing = (g: Golfer) => !(rn > tournament.cut_after_round && g.status !== "active");
+    const rows = golfers.map((g) => ({ g, t: total(g), p: playing(g) }));
+    rows.sort(
+      (a, b) =>
+        Number(b.p) - Number(a.p) ||
+        (a.t ?? 9999) - (b.t ?? 9999) ||
+        byOrder(a.g, b.g)
+    );
+    const pos = new Map<string, string>();
+    const scored = rows.filter((r) => r.p && r.t !== null);
+    scored.forEach((r) => {
+      const first = scored.findIndex((x) => x.t === r.t);
+      const tied = scored.filter((x) => x.t === r.t).length > 1;
+      pos.set(r.g.id, `${tied ? "T" : ""}${first + 1}`);
+    });
+    return { list: rows.map((r) => r.g), pos };
+  }, [golfers, scores, rn, tournament.cut_after_round]);
+
+  const shown = ordered.list.filter((g) => g.name.toLowerCase().includes(q.trim().toLowerCase()));
 
   function run(fn: () => Promise<{ error?: string }>) {
     setMsg("");
@@ -136,7 +163,12 @@ export default function RosterClient({
               placeholder="Search golfers"
               className="w-full border border-pine/30 rounded px-3 py-2"
             />
-            <p className="text-xs text-ink/60 mt-2">Scores shown are each golfer&apos;s score in that round. You earn the score from the round you pick them for.</p>
+            <p className="text-xs text-ink/60 mt-2">
+              {rn === 1
+                ? "Golfers are listed in ESPN's pre-tournament order."
+                : "Golfers are listed in leaderboard order. The number is their position after the completed rounds."}{" "}
+              You earn each golfer&apos;s score from the round you pick them for.
+            </p>
           </div>
           <ul className="max-h-[28rem] overflow-y-auto divide-y divide-pine/10">
             {shown.map((g) => {
@@ -146,6 +178,9 @@ export default function RosterClient({
               return (
                 <li key={g.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
                   <span className={`min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/40" : ""}`}>
+                    <span className="inline-block w-8 font-mono text-xs text-ink/40">
+                      {rn === 1 ? (g.sort_order ?? "") : (ordered.pos.get(g.id) ?? "")}
+                    </span>
                     {g.name}
                     {g.country && <span className="ml-1 text-xs text-ink/40">{g.country}</span>}
                   </span>

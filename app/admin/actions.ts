@@ -50,6 +50,7 @@ export async function createTournament(_: Result, fd: FormData): Promise<Result>
     name: g.name,
     country: g.country,
     status: g.status,
+    sort_order: g.order,
   }));
   for (let i = 0; i < rows.length; i += 200) {
     const r = await db.from("golfers").insert(rows.slice(i, i + 200));

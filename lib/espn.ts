@@ -9,6 +9,7 @@ export type SyncGolfer = {
   name: string;
   country: string | null;
   status: "active" | "cut" | "wd" | "dq";
+  order: number | null;
   rounds: SyncRound[];
 };
 export type EspnEvent = { eventId: string; name: string; startDate: string | null; golfers: SyncGolfer[] };
@@ -53,6 +54,7 @@ function parseCompetitor(c: any, par: number): SyncGolfer | null {
     name: String(name),
     country: c?.athlete?.flag?.alt ?? null,
     status: statusOf(c),
+    order: Number.isFinite(Number(c?.order)) && c?.order != null ? Number(c.order) : null,
     rounds,
   };
 }

@@ -18,6 +18,7 @@ export type Golfer = {
   name: string;
   country: string | null;
   status: "active" | "cut" | "wd" | "dq";
+  sort_order: number | null;
 };
 export type GolferRound = {
   golfer_id: string;
