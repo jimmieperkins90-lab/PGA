@@ -1,6 +1,6 @@
 "use client";
 import { useFormState, useFormStatus } from "react-dom";
-import { createTournament, forceSync, setGolferStatus, setLockTimes } from "./actions";
+import { createTournament, forceSync, setCutRule, setGolferStatus, setLockTimes } from "./actions";
 
 type Result = { ok?: string; error?: string };
 const init: Result = {};
@@ -79,6 +79,30 @@ export function StatusForm({ golfers }: { golfers: { id: string; name: string; s
           <option value="dq">dq</option>
         </select>
         <Submit>Set status</Submit>
+      </div>
+      <Note s={s} />
+    </form>
+  );
+}
+
+export function CutForm({ tournamentId, mode, value }: { tournamentId: string; mode: string; value: number }) {
+  const [s, action] = useFormState(setCutRule.bind(null, tournamentId), init);
+  return (
+    <form action={action} className="space-y-2">
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="text-sm">
+          Cut rule
+          <select name="mode" defaultValue={mode} className="block border border-pine/30 rounded px-2 py-2">
+            <option value="percent">Cut the bottom % of entries</option>
+            <option value="count">Cut a set number of entries</option>
+            <option value="off">No cut</option>
+          </select>
+        </label>
+        <label className="text-sm">
+          Amount
+          <input name="value" type="number" min={0} defaultValue={value} className="block w-24 border border-pine/30 rounded px-2 py-2" />
+        </label>
+        <Submit>Save cut rule</Submit>
       </div>
       <Note s={s} />
     </form>

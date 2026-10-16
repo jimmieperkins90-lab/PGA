@@ -5,6 +5,9 @@ export type Tournament = {
   espn_event_id: string | null;
   picks_per_round: number[];
   cut_after_round: number;
+  cut_mode: "off" | "percent" | "count";
+  cut_value: number;
+  cut_applied: boolean;
   is_active: boolean;
 };
 export type Round = { tournament_id: string; round_no: number; lock_at: string | null };
@@ -28,6 +31,7 @@ export type Pick = { id: string; tournament_id: string; user_id: string; round_n
 export type LeaderRow = {
   user_id: string;
   display_name: string;
+  is_cut: boolean;
   r1: number | null;
   r2: number | null;
   r3: number | null;

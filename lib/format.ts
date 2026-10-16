@@ -9,3 +9,17 @@ export function parClass(n: number | null | undefined): string {
   if (n < 0) return "text-azalea font-semibold";
   return "text-ink";
 }
+
+// "-2 (70)" for a finished round, "-2 thru 9" while in progress, "–" if not played yet.
+export function fmtRound(r: { to_par: number | null; strokes: number | null; thru: number | null } | undefined): string {
+  if (!r || r.to_par === null) return "–";
+  const par = fmtPar(r.to_par);
+  if ((r.thru ?? 0) >= 18) return r.strokes ? `${par} (${r.strokes})` : par;
+  return r.thru ? `${par} thru ${r.thru}` : par;
+}
+
+export function cutRuleText(mode: string, value: number, afterRound: number): string {
+  if (mode === "off") return "No pool cut.";
+  const who = mode === "percent" ? `the bottom ${value}% of entries` : `the ${value} lowest-scoring ${value === 1 ? "entry" : "entries"}`;
+  return `After Round ${afterRound}, ${who} are cut (ties at the line stay in).`;
+}

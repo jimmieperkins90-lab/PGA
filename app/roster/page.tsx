@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getActive, getField, totalFor } from "@/lib/data";
+import { getActive, getField } from "@/lib/data";
 import type { Pick } from "@/lib/types";
 import RosterClient from "./RosterClient";
 import ProfileForm from "./ProfileForm";
@@ -19,19 +19,21 @@ export default async function RosterPage() {
   const { data: profile } = await db.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
   if (!profile) return <ProfileForm tournamentId={t.id} tournamentName={t.name} />;
 
-  const [{ data: picks }, field] = await Promise.all([
+  const [{ data: picks }, { data: entry }, field] = await Promise.all([
     db.from("picks").select("*").eq("tournament_id", t.id).eq("user_id", user.id),
+    db.from("entries").select("is_cut").eq("tournament_id", t.id).eq("user_id", user.id).maybeSingle(),
     getField(db, t.id),
   ]);
-  const golfers = field.golfers.map((g) => ({ ...g, total: totalFor(field.scores, g.id) }));
 
   return (
     <RosterClient
       tournament={t}
       rounds={rounds}
-      golfers={golfers}
+      golfers={field.golfers}
+      scores={field.scores}
       picks={(picks ?? []) as Pick[]}
       displayName={profile.display_name}
+      isCut={!!entry?.is_cut}
     />
   );
 }

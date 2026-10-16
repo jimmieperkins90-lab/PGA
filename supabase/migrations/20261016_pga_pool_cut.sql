@@ -1,0 +1,8 @@
+-- Applied to the shared Supabase project as two migrations:
+--   pga_cut_columns_and_pick_rule, pga_auto_pool_cut_and_score_freeze.
+-- Summary:
+--   tournaments: cut_mode ('off'|'percent'|'count'), cut_value, cut_applied
+--   entries: is_cut
+--   pga.round_final(), pga.run_pool_cut() (internal), pga.set_cut_rule() (admin), pga.leaderboard()
+--   pga.apply_scores(): freezes a golfer's round once thru >= 18, then runs the pool cut
+-- See the project's migration history for the full SQL.

@@ -107,3 +107,19 @@ export async function setGolferStatus(_: Result, fd: FormData): Promise<Result> 
   revalidatePath("/roster");
   return { ok: "Status updated." };
 }
+
+export async function setCutRule(tournamentId: string, _: Result, fd: FormData): Promise<Result> {
+  const db = createClient();
+  if (!(await requireAdmin(db))) return { error: "Admins only." };
+  const mode = String(fd.get("mode") ?? "");
+  const value = mode === "off" ? 0 : parseInt(String(fd.get("value") ?? ""), 10);
+  if (!["off", "percent", "count"].includes(mode)) return { error: "Choose a cut rule." };
+  if (mode !== "off" && (!Number.isFinite(value) || value < 0)) return { error: "Enter a number of 0 or more." };
+  if (mode === "percent" && value > 100) return { error: "Percent can't be more than 100." };
+  const { data, error } = await db.rpc("set_cut_rule", { p_t: tournamentId, p_mode: mode, p_value: value });
+  if (error) return { error: error.message };
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/roster");
+  return { ok: mode === "off" ? "Cut turned off." : `Cut rule saved.${data > 0 ? ` ${data} entries were cut.` : ""}` };
+}

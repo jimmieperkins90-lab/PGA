@@ -1,10 +1,8 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
 import { addPick, removePick } from "./actions";
-import { fmtPar, parClass } from "@/lib/format";
-import { isLocked, type Golfer, type Pick, type Round, type Tournament } from "@/lib/types";
-
-type G = Golfer & { total: number | null };
+import { fmtPar, fmtRound, parClass } from "@/lib/format";
+import { isLocked, type Golfer, type GolferRound, type Pick, type Round, type Tournament } from "@/lib/types";
 
 function lockText(iso: string | null) {
   if (!iso) return "Lock time not set yet";
@@ -19,14 +17,18 @@ export default function RosterClient({
   tournament,
   rounds,
   golfers,
+  scores,
   picks,
   displayName,
+  isCut,
 }: {
   tournament: Tournament;
   rounds: Round[];
-  golfers: G[];
+  golfers: Golfer[];
+  scores: GolferRound[];
   picks: Pick[];
   displayName: string;
+  isCut: boolean;
 }) {
   const firstOpen = rounds.find((r) => !isLocked(r))?.round_no ?? rounds[rounds.length - 1]?.round_no ?? 1;
   const [rn, setRn] = useState(firstOpen);
@@ -40,6 +42,8 @@ export default function RosterClient({
   const myRound = picks.filter((p) => p.round_no === rn);
   const full = myRound.length >= limit;
   const afterCut = rn > tournament.cut_after_round;
+  const eliminated = isCut && afterCut;
+  const score = (gid: string, r: number) => scores.find((x) => x.golfer_id === gid && x.round_no === r);
   const gById = useMemo(() => new Map(golfers.map((g) => [g.id, g])), [golfers]);
   const usedIn = useMemo(() => new Map(picks.map((p) => [p.golfer_id, p.round_no])), [picks]);
 
@@ -95,6 +99,9 @@ export default function RosterClient({
               return (
                 <li key={p.id} className="flex items-center justify-between py-2">
                   <span>{g?.name ?? "Unknown"}</span>
+                  <span className={`font-mono text-sm ${parClass(score(p.golfer_id, rn)?.to_par)}`}>
+                    {fmtRound(score(p.golfer_id, rn))}
+                  </span>
                   {!locked && (
                     <button
                       disabled={pending}
@@ -112,7 +119,13 @@ export default function RosterClient({
         {msg && <p className="text-sm text-azalea mt-2" role="alert">{msg}</p>}
       </div>
 
-      {!locked && (
+      {eliminated && (
+        <p className="mb-4 rounded bg-azalea/10 border border-azalea/30 text-azalea px-3 py-2 text-sm font-semibold">
+          You didn&apos;t make the cut after Round {tournament.cut_after_round}, so you&apos;re out of picks for this round. Your score is final.
+        </p>
+      )}
+
+      {!locked && !eliminated && (
         <div className="bg-white border border-pine/15 rounded-lg">
           <div className="p-3 border-b border-pine/10">
             <label htmlFor="q" className="sr-only">Search golfers</label>
@@ -123,29 +136,39 @@ export default function RosterClient({
               placeholder="Search golfers"
               className="w-full border border-pine/30 rounded px-3 py-2"
             />
-            {afterCut && <p className="text-xs text-ink/60 mt-2">Only golfers who made the cut can be picked for this round.</p>}
+            <p className="text-xs text-ink/60 mt-2">Scores shown are each golfer&apos;s score in that round. You earn the score from the round you pick them for.</p>
           </div>
           <ul className="max-h-[28rem] overflow-y-auto divide-y divide-pine/10">
             {shown.map((g) => {
               const used = usedIn.get(g.id);
-              const ineligible = afterCut && g.status !== "active";
-              const disabled = pending || full || used !== undefined || ineligible;
+              const notPlaying = afterCut && g.status !== "active";
+              const disabled = pending || full || used !== undefined || notPlaying;
               return (
-                <li key={g.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                  <span className={used !== undefined || ineligible ? "text-ink/40" : ""}>
+                <li key={g.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                  <span className={`min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/40" : ""}`}>
                     {g.name}
                     {g.country && <span className="ml-1 text-xs text-ink/40">{g.country}</span>}
-                    {g.status !== "active" && <span className="ml-1 text-xs uppercase text-azalea">{g.status}</span>}
                   </span>
-                  <span className="flex items-center gap-3">
-                    <span className={`font-mono ${parClass(g.total)}`}>{fmtPar(g.total)}</span>
+                  <span className="flex items-center gap-3 shrink-0">
+                    <span className="font-mono text-xs flex gap-2">
+                      {[1, 2, 3, 4].map((r) => {
+                        const sr = score(g.id, r);
+                        return sr && sr.to_par !== null ? (
+                          <span key={r} className={parClass(sr.to_par)} title={`Round ${r}`}>
+                            <span className="text-ink/40">R{r}</span> {fmtPar(sr.to_par)}
+                          </span>
+                        ) : null;
+                      })}
+                    </span>
                     {used !== undefined ? (
-                      <span className="text-xs text-ink/50 w-14 text-right">Used R{used}</span>
+                      <span className="text-xs text-ink/50 w-16 text-right">Used R{used}</span>
+                    ) : notPlaying ? (
+                      <span className="text-xs text-ink/50 w-16 text-right">Not playing</span>
                     ) : (
                       <button
                         disabled={disabled}
                         onClick={() => run(() => addPick(tournament.id, rn, g.id))}
-                        className="w-14 rounded bg-fairway text-white text-xs font-semibold py-1 hover:bg-pine disabled:opacity-30"
+                        className="w-16 rounded bg-fairway text-white text-xs font-semibold py-1 hover:bg-pine disabled:opacity-30"
                       >
                         Add
                       </button>

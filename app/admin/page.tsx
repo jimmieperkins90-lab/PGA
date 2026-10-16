@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isoToEtLocal } from "@/lib/time";
 import { setActive } from "./actions";
-import { CreateForm, LockForm, StatusForm, SyncForm } from "./forms";
+import { CreateForm, CutForm, LockForm, StatusForm, SyncForm } from "./forms";
 
 export const dynamic = "force-dynamic";
 
@@ -55,13 +55,21 @@ export default async function Admin() {
             <LockForm tournamentId={active.id} values={[1, 2, 3, 4].map((n) => isoToEtLocal((rounds ?? []).find((r: any) => r.round_no === n)?.lock_at ?? null))} />
           </section>
           <section className={card}>
+            <h2 className="font-semibold">Pool cut</h2>
+            <p className="text-sm text-ink/70">
+              Happens automatically once Round {active.cut_after_round} is final. Entries with the highest scores are cut; ties at the line stay in.
+              {active.cut_applied ? " The cut has already been applied; saving a new rule re-applies it." : " Not applied yet."}
+            </p>
+            <CutForm tournamentId={active.id} mode={active.cut_mode} value={active.cut_value} />
+          </section>
+          <section className={card}>
             <h2 className="font-semibold">Scores</h2>
             <p className="text-sm text-ink/70">Scores sync automatically about once a minute while play is on.</p>
             <SyncForm />
           </section>
           <section className={card}>
-            <h2 className="font-semibold">Golfer status (cut / WD / DQ)</h2>
-            <p className="text-sm text-ink/70">Use this after Round 2 if the cut isn&apos;t picked up automatically.</p>
+            <h2 className="font-semibold">Golfer availability (WD / DQ / not playing)</h2>
+            <p className="text-sm text-ink/70">Only needed if ESPN misses a withdrawal. Golfers marked anything but active can&apos;t be picked after Round {active.cut_after_round}.</p>
             <StatusForm golfers={(golfers ?? []) as any} />
           </section>
         </>
