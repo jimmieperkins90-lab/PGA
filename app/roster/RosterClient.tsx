@@ -80,6 +80,80 @@ export default function RosterClient({
 
   const shown = ordered.list.filter((g) => g.name.toLowerCase().includes(q.trim().toLowerCase()));
 
+  // Each player's own view of the field: still available, already used by them, or out (missed the real cut / withdrew).
+  const isOut = (g: Golfer) => afterCut && g.status !== "active";
+  const availList = shown.filter((g) => usedIn.get(g.id) === undefined && !isOut(g));
+  const usedList = shown.filter((g) => usedIn.get(g.id) !== undefined);
+  const outList = shown.filter((g) => usedIn.get(g.id) === undefined && isOut(g));
+  const searching = q.trim() !== "";
+
+  const renderRow = (g: Golfer) => {
+    const used = usedIn.get(g.id);
+    const notPlaying = isOut(g);
+    const disabled = pending || full || used !== undefined || notPlaying;
+    const anyScore = [1, 2, 3, 4].some((r) => score(g.id, r)?.to_par != null);
+    return (
+      <li
+        key={g.id}
+        className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_5rem] items-center gap-x-1 gap-y-1 px-3 py-2.5 text-sm"
+      >
+        <span className={`order-1 sm:order-none min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/50" : ""}`}>
+          <span className="inline-block w-8 font-mono text-xs text-ink/40">
+            {rn === 1 ? (g.sort_order ?? "") : (ordered.pos.get(g.id) ?? "")}
+          </span>
+          {g.name}
+          {g.country && <span className="ml-1 text-xs text-ink/40">{g.country}</span>}
+        </span>
+        <span
+          className={`order-3 sm:order-none col-span-2 sm:col-span-1 grid-cols-4 gap-1 pl-8 sm:pl-0 sm:contents ${
+            anyScore ? "grid" : "hidden sm:contents"
+          }`}
+        >
+          {[1, 2, 3, 4].map((r) => {
+            const sr = score(g.id, r);
+            const has = sr && sr.to_par !== null;
+            return (
+              <span key={r} className={`font-mono text-xs sm:text-right ${has ? parClass(sr!.to_par) : "text-ink/20"}`}>
+                <span className="sm:hidden text-ink/40">R{r} </span>
+                {has ? fmtPar(sr!.to_par) : "·"}
+              </span>
+            );
+          })}
+        </span>
+        <span className="order-2 sm:order-none flex justify-end">
+          {used !== undefined ? (
+            <span className="text-xs text-ink/50 px-2">Used R{used}</span>
+          ) : notPlaying ? (
+            <span className="text-xs text-ink/50 px-2">Out</span>
+          ) : (
+            <button
+              disabled={disabled}
+              onClick={() => run(() => addPick(tournament.id, rn, g.id))}
+              className="min-h-[40px] w-20 rounded bg-fairway text-white text-sm font-semibold hover:bg-pine disabled:opacity-30"
+            >
+              Add
+            </button>
+          )}
+        </span>
+      </li>
+    );
+  };
+
+  const fold = (title: string, items: Golfer[], open: boolean | undefined, empty?: string) => (
+    <details open={open} className="group border-t border-pine/10 first:border-t-0">
+      <summary className="list-none flex min-h-[48px] cursor-pointer items-center justify-between bg-sand/40 px-3 font-semibold text-pine [&::-webkit-details-marker]:hidden">
+        <span>
+          {title} <span className="font-normal text-ink/50">({items.length})</span>
+        </span>
+        <span aria-hidden className="text-lg leading-none text-ink/40 transition-transform group-open:rotate-90">&rsaquo;</span>
+      </summary>
+      <ul className="divide-y divide-pine/10">
+        {items.map(renderRow)}
+        {items.length === 0 && empty && <li className="px-3 py-4 text-sm text-ink/60">{empty}</li>}
+      </ul>
+    </details>
+  );
+
   function run(fn: () => Promise<{ error?: string }>) {
     setMsg("");
     start(async () => {
@@ -185,63 +259,9 @@ export default function RosterClient({
             ))}
             <span />
           </div>
-          <ul className="divide-y divide-pine/10">
-            {shown.map((g) => {
-              const used = usedIn.get(g.id);
-              const notPlaying = afterCut && g.status !== "active";
-              const disabled = pending || full || used !== undefined || notPlaying;
-              const anyScore = [1, 2, 3, 4].some((r) => score(g.id, r)?.to_par != null);
-              return (
-                <li
-                  key={g.id}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_5rem] items-center gap-x-1 gap-y-1 px-3 py-2.5 text-sm"
-                >
-                  <span className={`order-1 sm:order-none min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/40" : ""}`}>
-                    <span className="inline-block w-8 font-mono text-xs text-ink/40">
-                      {rn === 1 ? (g.sort_order ?? "") : (ordered.pos.get(g.id) ?? "")}
-                    </span>
-                    {g.name}
-                    {g.country && <span className="ml-1 text-xs text-ink/40">{g.country}</span>}
-                  </span>
-                  <span
-                    className={`order-3 sm:order-none col-span-2 sm:col-span-1 grid-cols-4 gap-1 pl-8 sm:pl-0 sm:contents ${
-                      anyScore ? "grid" : "hidden sm:contents"
-                    }`}
-                  >
-                    {[1, 2, 3, 4].map((r) => {
-                      const sr = score(g.id, r);
-                      const has = sr && sr.to_par !== null;
-                      return (
-                        <span
-                          key={r}
-                          className={`font-mono text-xs sm:text-right ${has ? parClass(sr!.to_par) : "text-ink/20"}`}
-                        >
-                          <span className="sm:hidden text-ink/40">R{r} </span>
-                          {has ? fmtPar(sr!.to_par) : "·"}
-                        </span>
-                      );
-                    })}
-                  </span>
-                  <span className="order-2 sm:order-none flex justify-end">
-                    {used !== undefined ? (
-                      <span className="text-xs text-ink/50 px-2">Used R{used}</span>
-                    ) : notPlaying ? (
-                      <span className="text-xs text-ink/50 px-2">Out</span>
-                    ) : (
-                      <button
-                        disabled={disabled}
-                        onClick={() => run(() => addPick(tournament.id, rn, g.id))}
-                        className="min-h-[40px] w-20 rounded bg-fairway text-white text-sm font-semibold hover:bg-pine disabled:opacity-30"
-                      >
-                        Add
-                      </button>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-            {shown.length === 0 && <li className="px-3 py-4 text-sm text-ink/60">No golfers match.</li>}
-          </ul>
+          {fold("Available golfers", availList, true, searching ? "No available golfers match." : "No golfers available.")}
+          {usedList.length > 0 && fold("Used golfers", usedList, searching ? true : undefined)}
+          {outList.length > 0 && fold("Cut golfers", outList, searching ? true : undefined)}
         </div>
       )}
     </div>

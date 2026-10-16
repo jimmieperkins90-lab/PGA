@@ -89,7 +89,7 @@ export default async function Admin() {
           <section className={card}>
             <h2 className="font-semibold">Pool cut</h2>
             <p className="text-sm text-ink/70">
-              Happens automatically once Round {active.cut_after_round} is final. Entries with the highest scores are cut; ties at the line stay in.
+              Happens automatically once Round {active.cut_after_round} is final. The top entries advance (a percent of the pool, or a set number), and anyone tied at the line advances too. The rest are cut.
               {active.cut_applied ? " The cut has already been applied; saving a new rule re-applies it." : " Not applied yet."}
             </p>
             <CutForm tournamentId={active.id} mode={active.cut_mode} value={active.cut_value} />

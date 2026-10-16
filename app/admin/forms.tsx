@@ -93,13 +93,13 @@ export function CutForm({ tournamentId, mode, value }: { tournamentId: string; m
         <label className="text-sm">
           Cut rule
           <select name="mode" defaultValue={mode} className="block border border-pine/30 rounded px-2 py-2">
-            <option value="percent">Cut the bottom % of entries</option>
-            <option value="count">Cut a set number of entries</option>
+            <option value="percent">Top % of entries advance</option>
+            <option value="count">Top number of entries advance</option>
             <option value="off">No cut</option>
           </select>
         </label>
         <label className="text-sm">
-          Amount
+          Percent or number
           <input name="value" type="number" min={0} defaultValue={value} className="block w-24 border border-pine/30 rounded px-2 py-2" />
         </label>
         <Submit>Save cut rule</Submit>

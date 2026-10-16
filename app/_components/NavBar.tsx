@@ -37,8 +37,8 @@ export default function NavBar({ isAdmin }: { isAdmin: boolean }) {
   const tabs = [
     { href: "/", label: "Board", icon: "board", active: path === "/" },
     { href: "/roster", label: "Roster", icon: "roster", active: path.startsWith("/roster") },
-    { href: "/tournaments", label: "Past", icon: "past", active: path.startsWith("/tournaments") },
     { href: "/rules", label: "Rules", icon: "rules", active: path.startsWith("/rules") },
+    { href: "/tournaments", label: "Past", icon: "past", active: path.startsWith("/tournaments") },
     { href: "/account", label: "Account", icon: "account", active: path.startsWith("/account") },
     ...(isAdmin ? [{ href: "/admin", label: "Admin", icon: "admin", active: path.startsWith("/admin") }] : []),
   ];

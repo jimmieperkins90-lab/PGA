@@ -19,11 +19,13 @@ export function fmtRound(r: { to_par: number | null; strokes: number | null; thr
 }
 
 // Plain-English description of the admin's cut setting (used on the Rules page).
+// The setting is how many entries ADVANCE: a percent of the pool, or a set number. Ties at the line advance too.
 export function cutRuleText(mode: string, value: number, afterRound: number): string {
   if (mode === "off") return "There is no cut in this pool. Everyone plays all four rounds.";
   const who =
     mode === "percent"
-      ? `the bottom ${value}% of entries (rounded down)`
-      : `the ${value} worst-scoring ${value === 1 ? "entry" : "entries"}`;
-  return `After Round ${afterRound}, ${who} are cut. Anyone tied at the cut line stays in.`;
+      ? `the top ${value}% of entries (rounded up)`
+      : `the top ${value} ${value === 1 ? "entry" : "entries"}`;
+  const next = afterRound === 2 ? "the weekend" : `Round ${afterRound + 1}`;
+  return `After Round ${afterRound}, ${who}, plus anyone tied at the line, advance to ${next}. The remaining entries are cut from the tournament.`;
 }
