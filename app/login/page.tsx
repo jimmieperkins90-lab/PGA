@@ -9,11 +9,7 @@ export default async function LoginPage() {
   } = await supabase.auth.getUser();
   if (user) redirect("/");
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white border border-pine/15 rounded-lg p-6 shadow-sm">
-      <h1 className="font-display text-2xl text-pine mb-1">Sign in</h1>
-      <p className="text-sm text-ink/70 mb-4">
-        Enter your email and we&apos;ll send you a one-tap sign-in link. No password, and you stay signed in on this device.
-      </p>
+    <div className="max-w-md mx-auto mt-6 bg-white border border-pine/15 rounded-lg p-6 shadow-sm">
       <LoginForm />
     </div>
   );
