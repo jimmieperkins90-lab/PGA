@@ -98,7 +98,7 @@ export default function RosterClient({
         </p>
       )}
       <p className="text-sm text-ink/70 mb-4 mt-2">
-        {displayName}: each golfer can be used once all week. Picks per round: {tournament.picks_per_round.join(" / ")}.
+        {displayName}: each golfer can be used once all week.
       </p>
 
       <div className="flex gap-2 mb-4" role="tablist">
@@ -173,12 +173,13 @@ export default function RosterClient({
               placeholder="Search golfers"
               className="w-full border border-pine/30 rounded px-3 py-2"
             />
-            <p className="text-xs text-ink/60 mt-2">
-              {rn === 1
-                ? "Golfers are listed in ESPN's pre-tournament order."
-                : "Golfers are listed in leaderboard order. The number is their position after the completed rounds."}{" "}
-              You earn each golfer&apos;s score from the round you pick them for.
-            </p>
+          </div>
+          <div className="grid grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_4.5rem] items-center gap-x-1 px-3 py-1.5 text-[11px] font-semibold uppercase text-ink/50 bg-sand/50 border-b border-pine/10">
+            <span>Golfer</span>
+            {[1, 2, 3, 4].map((r) => (
+              <span key={r} className="text-right">R{r}</span>
+            ))}
+            <span />
           </div>
           <ul className="max-h-[28rem] overflow-y-auto divide-y divide-pine/10">
             {shown.map((g) => {
@@ -186,7 +187,7 @@ export default function RosterClient({
               const notPlaying = afterCut && g.status !== "active";
               const disabled = pending || full || used !== undefined || notPlaying;
               return (
-                <li key={g.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                <li key={g.id} className="grid grid-cols-[minmax(0,1fr)_repeat(4,2.25rem)_4.5rem] items-center gap-x-1 px-3 py-2 text-sm">
                   <span className={`min-w-0 truncate ${used !== undefined || notPlaying ? "text-ink/40" : ""}`}>
                     <span className="inline-block w-8 font-mono text-xs text-ink/40">
                       {rn === 1 ? (g.sort_order ?? "") : (ordered.pos.get(g.id) ?? "")}
@@ -194,31 +195,28 @@ export default function RosterClient({
                     {g.name}
                     {g.country && <span className="ml-1 text-xs text-ink/40">{g.country}</span>}
                   </span>
-                  <span className="flex items-center gap-3 shrink-0">
-                    <span className="font-mono text-xs flex gap-2">
-                      {[1, 2, 3, 4].map((r) => {
-                        const sr = score(g.id, r);
-                        return sr && sr.to_par !== null ? (
-                          <span key={r} className={parClass(sr.to_par)} title={`Round ${r}`}>
-                            <span className="text-ink/40">R{r}</span> {fmtPar(sr.to_par)}
-                          </span>
-                        ) : null;
-                      })}
-                    </span>
-                    {used !== undefined ? (
-                      <span className="text-xs text-ink/50 w-16 text-right">Used R{used}</span>
-                    ) : notPlaying ? (
-                      <span className="text-xs text-ink/50 w-16 text-right">Not playing</span>
-                    ) : (
-                      <button
-                        disabled={disabled}
-                        onClick={() => run(() => addPick(tournament.id, rn, g.id))}
-                        className="w-16 rounded bg-fairway text-white text-xs font-semibold py-1 hover:bg-pine disabled:opacity-30"
-                      >
-                        Add
-                      </button>
-                    )}
-                  </span>
+                  {[1, 2, 3, 4].map((r) => {
+                    const sr = score(g.id, r);
+                    const has = sr && sr.to_par !== null;
+                    return (
+                      <span key={r} className={`text-right font-mono text-xs ${has ? parClass(sr!.to_par) : "text-ink/20"}`}>
+                        {has ? fmtPar(sr!.to_par) : "·"}
+                      </span>
+                    );
+                  })}
+                  {used !== undefined ? (
+                    <span className="text-xs text-ink/50 text-right">Used R{used}</span>
+                  ) : notPlaying ? (
+                    <span className="text-xs text-ink/50 text-right">Out</span>
+                  ) : (
+                    <button
+                      disabled={disabled}
+                      onClick={() => run(() => addPick(tournament.id, rn, g.id))}
+                      className="w-full rounded bg-fairway text-white text-xs font-semibold py-1 hover:bg-pine disabled:opacity-30"
+                    >
+                      Add
+                    </button>
+                  )}
                 </li>
               );
             })}

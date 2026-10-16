@@ -3,6 +3,7 @@ import { fmtLock, getField } from "@/lib/data";
 import { cutRuleText, fmtPar, fmtRound, parClass } from "@/lib/format";
 import { isLocked, type Pick, type Round, type StandRow, type Tournament } from "@/lib/types";
 import LiveRefresher from "../LiveRefresher";
+import InfoPanel from "./InfoPanel";
 
 const GRID = "grid grid-cols-[3rem_1fr_repeat(4,2.5rem)_3.25rem]";
 
@@ -42,10 +43,9 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
         <div>
           <h1 className="font-display text-3xl text-pine">{t.name}</h1>
           {done && <p className="inline-block mt-1 text-xs font-semibold uppercase bg-gold/20 text-pine rounded px-2 py-0.5">Final results</p>}
-          <p className="text-sm text-ink/70 mt-1">
-            Each pick counts the golfer&apos;s score in the round it was used. Lowest total wins.
-          </p>
-          <p className="text-xs text-ink/60 mt-1">{cutRuleText(t.cut_mode, t.cut_value, t.cut_after_round)}</p>
+          <div className="mt-2">
+            <InfoPanel cutText={cutRuleText(t.cut_mode, t.cut_value, t.cut_after_round)} live={live && !done} />
+          </div>
         </div>
         {nextRound && !done && (
           <p className="text-sm bg-sand rounded px-3 py-1">
@@ -118,11 +118,6 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
           })}
         </div>
       )}
-      <p className="text-xs text-ink/50 mt-3">
-        {live && !done ? "Scores refresh about once a minute while play is on. " : ""}
-        A golfer&apos;s round score is final once the round is complete. Ties for a place are broken by most birdies or better,
-        then fewest bogeys or worse, then best single round by any golfer, then best worst round. Final places use the tiebreakers; ties during play show as T.
-      </p>
     </div>
   );
 }
