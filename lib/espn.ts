@@ -3,7 +3,14 @@
 const BASE = "https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard";
 const DEFAULT_PAR = 72;
 
-export type SyncRound = { round_no: number; to_par: number | null; strokes: number | null; thru: number };
+export type SyncRound = {
+  round_no: number;
+  to_par: number | null;
+  strokes: number | null;
+  thru: number;
+  under_par_holes: number | null; // holes under par (birdie or better)
+  over_par_holes: number | null; // holes over par (bogey or worse)
+};
 export type SyncGolfer = {
   espn_id: string;
   name: string;
@@ -47,7 +54,20 @@ function parseCompetitor(c: any, par: number): SyncGolfer | null {
     let to_par = parToNum(ls?.displayValue);
     if (to_par === null && strokes !== null && (holes.length === 18 || holes.length === 0)) to_par = strokes - par;
     const thru = holes.length > 0 ? holes.length : strokes !== null ? 18 : 0;
-    rounds.push({ round_no, to_par, strokes, thru });
+    // Each hole carries its score relative to par in scoreType.displayValue ("-1", "E", "+1").
+    let under = 0, over = 0, known = 0;
+    for (const h of holes) {
+      const d = h?.scoreType?.displayValue;
+      if (typeof d !== "string") continue;
+      known++;
+      if (/^-\d/.test(d.trim())) under++;
+      else if (/^\+\d/.test(d.trim())) over++;
+    }
+    rounds.push({
+      round_no, to_par, strokes, thru,
+      under_par_holes: known > 0 ? under : null,
+      over_par_holes: known > 0 ? over : null,
+    });
   }
   return {
     espn_id: String(id),

@@ -2,7 +2,15 @@
 import { useState, useTransition } from "react";
 import { saveProfile } from "./actions";
 
-export default function ProfileForm({ tournamentId, tournamentName }: { tournamentId: string; tournamentName: string }) {
+export default function ProfileForm({
+  tournamentId,
+  tournamentName,
+  paymentNote,
+}: {
+  tournamentId: string;
+  tournamentName: string;
+  paymentNote: string | null;
+}) {
   const [err, setErr] = useState("");
   const [pending, start] = useTransition();
   return (
@@ -16,6 +24,11 @@ export default function ProfileForm({ tournamentId, tournamentName }: { tourname
       className="max-w-md mx-auto bg-white border border-pine/15 rounded-lg p-6 space-y-3"
     >
       <h1 className="font-display text-2xl text-pine">Join {tournamentName}</h1>
+      {paymentNote && (
+        <p className="rounded bg-gold/15 border border-gold/40 px-3 py-2 text-sm">
+          <span className="font-semibold">Entry fee:</span> {paymentNote}
+        </p>
+      )}
       <label htmlFor="display_name" className="block text-sm font-semibold">Name shown on the leaderboard</label>
       <input id="display_name" name="display_name" required maxLength={40} className="w-full border border-pine/30 rounded px-3 py-2" />
       <button disabled={pending} className="w-full bg-fairway text-white font-semibold rounded py-2 hover:bg-pine disabled:opacity-60">

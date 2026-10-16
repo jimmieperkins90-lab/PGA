@@ -17,11 +17,12 @@ export default async function RosterPage() {
   const { t, rounds } = active;
 
   const { data: profile } = await db.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
-  if (!profile) return <ProfileForm tournamentId={t.id} tournamentName={t.name} />;
+  if (!profile) return <ProfileForm tournamentId={t.id} tournamentName={t.name} paymentNote={t.payment_note} />;
 
-  const [{ data: picks }, { data: entry }, field] = await Promise.all([
+  const [{ data: picks }, { data: entry }, { data: pay }, field] = await Promise.all([
     db.from("picks").select("*").eq("tournament_id", t.id).eq("user_id", user.id),
     db.from("entries").select("is_cut").eq("tournament_id", t.id).eq("user_id", user.id).maybeSingle(),
+    db.from("payments").select("paid").eq("tournament_id", t.id).eq("user_id", user.id).maybeSingle(),
     getField(db, t.id),
   ]);
 
@@ -34,6 +35,8 @@ export default async function RosterPage() {
       picks={(picks ?? []) as Pick[]}
       displayName={profile.display_name}
       isCut={!!entry?.is_cut}
+      unpaid={pay ? !pay.paid : false}
+      paymentNote={t.payment_note}
     />
   );
 }

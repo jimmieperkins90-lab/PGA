@@ -44,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <nav className="flex items-center gap-1">
                 <Link href="/" className={link}>Leaderboard</Link>
                 <Link href="/roster" className={link}>My Roster</Link>
+                <Link href="/tournaments" className={link}>Past</Link>
                 <Link href="/account" className={link}>Account</Link>
                 {isAdmin && <Link href="/admin" className={link}>Admin</Link>}
                 <form action={signOut}>

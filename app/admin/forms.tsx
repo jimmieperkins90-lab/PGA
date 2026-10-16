@@ -1,6 +1,6 @@
 "use client";
 import { useFormState, useFormStatus } from "react-dom";
-import { createTournament, forceSync, setCutRule, setGolferStatus, setLockTimes } from "./actions";
+import { createTournament, forceSync, setCutRule, setGolferStatus, setLockTimes, setPaymentNote } from "./actions";
 
 type Result = { ok?: string; error?: string };
 const init: Result = {};
@@ -103,6 +103,27 @@ export function CutForm({ tournamentId, mode, value }: { tournamentId: string; m
           <input name="value" type="number" min={0} defaultValue={value} className="block w-24 border border-pine/30 rounded px-2 py-2" />
         </label>
         <Submit>Save cut rule</Submit>
+      </div>
+      <Note s={s} />
+    </form>
+  );
+}
+
+export function PaymentNoteForm({ tournamentId, note }: { tournamentId: string; note: string }) {
+  const [s, action] = useFormState(setPaymentNote.bind(null, tournamentId), init);
+  return (
+    <form action={action} className="space-y-2">
+      <label htmlFor="note" className="block text-sm font-semibold">Payment message shown to players</label>
+      <div className="flex gap-2">
+        <input
+          id="note"
+          name="note"
+          defaultValue={note}
+          maxLength={300}
+          placeholder="e.g. $20 entry, send via Venmo @yourname before Round 1"
+          className="flex-1 border border-pine/30 rounded px-3 py-2"
+        />
+        <Submit>Save</Submit>
       </div>
       <Note s={s} />
     </form>

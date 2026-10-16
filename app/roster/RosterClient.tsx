@@ -21,6 +21,8 @@ export default function RosterClient({
   picks,
   displayName,
   isCut,
+  unpaid,
+  paymentNote,
 }: {
   tournament: Tournament;
   rounds: Round[];
@@ -29,6 +31,8 @@ export default function RosterClient({
   picks: Pick[];
   displayName: string;
   isCut: boolean;
+  unpaid: boolean;
+  paymentNote: string | null;
 }) {
   const firstOpen = rounds.find((r) => !isLocked(r))?.round_no ?? rounds[rounds.length - 1]?.round_no ?? 1;
   const [rn, setRn] = useState(firstOpen);
@@ -87,7 +91,13 @@ export default function RosterClient({
   return (
     <div>
       <h1 className="font-display text-3xl text-pine">{tournament.name}</h1>
-      <p className="text-sm text-ink/70 mb-4">
+      {unpaid && (
+        <p className="mt-2 rounded bg-gold/15 border border-gold/40 px-3 py-2 text-sm" role="status">
+          <span className="font-semibold">Payment reminder:</span> your entry isn&apos;t marked paid yet.
+          {paymentNote ? ` ${paymentNote}` : ""}
+        </p>
+      )}
+      <p className="text-sm text-ink/70 mb-4 mt-2">
         {displayName}: each golfer can be used once all week. Picks per round: {tournament.picks_per_round.join(" / ")}.
       </p>
 

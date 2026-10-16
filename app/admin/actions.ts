@@ -124,3 +124,27 @@ export async function setCutRule(tournamentId: string, _: Result, fd: FormData):
   revalidatePath("/roster");
   return { ok: mode === "off" ? "Cut turned off." : `Cut rule saved.${data > 0 ? ` ${data} entries were cut.` : ""}` };
 }
+
+export async function setPaymentNote(tournamentId: string, _: Result, fd: FormData): Promise<Result> {
+  const db = createClient();
+  if (!(await requireAdmin(db))) return { error: "Admins only." };
+  const note = String(fd.get("note") ?? "").trim().slice(0, 300);
+  const { error } = await db.from("tournaments").update({ payment_note: note || null }).eq("id", tournamentId);
+  if (error) return { error: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/roster");
+  return { ok: note ? "Payment message saved." : "Payment message cleared." };
+}
+
+export async function setPaid(tournamentId: string, userId: string, paid: boolean): Promise<void> {
+  const db = createClient();
+  if (!(await requireAdmin(db))) return;
+  await db
+    .from("payments")
+    .update({ paid, paid_at: paid ? new Date().toISOString() : null })
+    .eq("tournament_id", tournamentId)
+    .eq("user_id", userId);
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/roster");
+}
