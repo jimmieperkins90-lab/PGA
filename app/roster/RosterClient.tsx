@@ -56,6 +56,11 @@ export default function RosterClient({
   const score = (gid: string, r: number) => scores.find((x) => x.golfer_id === gid && x.round_no === r);
   const gById = useMemo(() => new Map(golfers.map((g) => [g.id, g])), [golfers]);
   const usedIn = useMemo(() => new Map(picks.map((p) => [p.golfer_id, p.round_no])), [picks]);
+  // Golfers who missed the real cut (or withdrew) but are still in an upcoming lineup of an active entry.
+  const outPicks = (r: Round) =>
+    isCut || isLocked(r) || r.round_no <= tournament.cut_after_round
+      ? []
+      : picks.filter((p) => p.round_no === r.round_no && gById.get(p.golfer_id)?.status !== "active" && gById.has(p.golfer_id));
 
   // Round 1: ESPN's pre-tournament order. Rounds 2-4: current leaderboard order (total to par so far).
   const ordered = useMemo(() => {
@@ -91,6 +96,8 @@ export default function RosterClient({
   const availList = shown.filter((g) => usedIn.get(g.id) === undefined && !isOut(g));
   const usedList = shown.filter((g) => usedIn.get(g.id) !== undefined);
   const outList = shown.filter((g) => usedIn.get(g.id) === undefined && isOut(g));
+  const flaggedAll = rounds.flatMap((r) => outPicks(r).map((p) => ({ p, r })));
+  const flaggedIds = new Set(flaggedAll.map((f) => f.p.id));
   const searching = q.trim() !== "";
 
   const renderRow = (g: Golfer) => {
@@ -196,6 +203,9 @@ export default function RosterClient({
               }`}
             >
               R{r.round_no}
+              {outPicks(r).length > 0 && (
+                <span aria-label="Golfer out of tournament" className="ml-1 inline-block h-2 w-2 rounded-full bg-azalea align-middle ring-1 ring-black/20" />
+              )}
               {tabIncomplete(r) && (
                 <span aria-label="Lineup incomplete" className="ml-1 inline-block h-2 w-2 rounded-full bg-gold align-middle ring-1 ring-black/20" />
               )}
@@ -205,6 +215,23 @@ export default function RosterClient({
         })}
       </div>
 
+      {flaggedAll.length > 0 && (
+        <div className="mb-3 rounded border border-azalea/40 bg-azalea/10 px-3 py-2 text-sm text-ink" role="alert">
+          <p className="font-semibold text-azalea">
+            {flaggedAll.length === 1 ? "A golfer in your lineup" : `${flaggedAll.length} golfers in your lineups`} missed the cut or withdrew:
+          </p>
+          <ul className="mt-1 space-y-0.5">
+            {flaggedAll.map(({ p, r }) => (
+              <li key={p.id}>
+                <button onClick={() => { setRn(r.round_no); setMsg(""); }} className="text-left underline">
+                  {gById.get(p.golfer_id)?.name} (Round {r.round_no})
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1">Swap them out before the round locks or that slot scores nothing.</p>
+        </div>
+      )}
       {incomplete && (
         <p className="mb-3 rounded border border-gold/60 bg-gold/15 px-3 py-2 text-sm font-semibold text-ink" role="status">
           Round {rn} lineup incomplete: {openSlots} open {openSlots === 1 ? "spot" : "spots"}. {lockText(round?.lock_at ?? null)}.
@@ -225,8 +252,15 @@ export default function RosterClient({
           {myRound.map((p) => {
             const g = gById.get(p.golfer_id);
             return (
-              <li key={p.id} className="flex min-h-[44px] items-center justify-between gap-2 rounded border border-pine/10 bg-paper px-3">
-                <span className="min-w-0 flex-1 truncate">{g?.name ?? "Unknown"}</span>
+              <li key={p.id} className={`flex min-h-[44px] items-center justify-between gap-2 rounded border px-3 ${flaggedIds.has(p.id) ? "border-azalea bg-azalea/10" : "border-pine/10 bg-paper"}`}>
+                <span className="min-w-0 flex-1 truncate">
+                  {g?.name ?? "Unknown"}
+                  {flaggedIds.has(p.id) && (
+                    <span className="ml-2 rounded-full bg-azalea px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {g?.status === "cut" ? "Cut" : g?.status === "dq" ? "DQ" : "WD"}
+                    </span>
+                  )}
+                </span>
                 <span className={`font-mono text-sm ${parClass(score(p.golfer_id, rn)?.to_par)}`}>
                   {fmtRound(score(p.golfer_id, rn))}
                 </span>

@@ -1,10 +1,8 @@
 export type ThemeName = "classic" | "masters";
 
-// "auto" picks the Masters look whenever the active tournament's name contains "Masters".
+// Masters is the standard look; an admin can switch a tournament to "classic".
 export function resolveTheme(t: { name?: string | null; theme?: string | null } | null | undefined): ThemeName {
-  if (t?.theme === "masters") return "masters";
-  if (t?.theme === "classic") return "classic";
-  return /masters/i.test(t?.name ?? "") ? "masters" : "classic";
+  return t?.theme === "classic" ? "classic" : "masters";
 }
 
 export function brandWords(theme: ThemeName): [string, string] {

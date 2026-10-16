@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
+import { getActive } from "@/lib/data";
 import NavBar from "./_components/NavBar";
 import { brandWords, resolveTheme } from "@/lib/theme";
 
@@ -24,23 +25,15 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: activeT } = await supabase
-    .from("tournaments")
-    .select("name, theme")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const theme = resolveTheme(activeT);
+  const user = await getUser();
+  // Runs in parallel; getActive is cached so the page reuses it instead of querying again.
+  const [active, adminRes] = await Promise.all([
+    getActive(supabase),
+    user ? supabase.from("profiles").select("is_admin").eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  const theme = resolveTheme(active?.t);
   const [brandA, brandB] = brandWords(theme);
-  let isAdmin = false;
-  if (user) {
-    const { data } = await supabase.from("profiles").select("is_admin").eq("user_id", user.id).maybeSingle();
-    isAdmin = !!data?.is_admin;
-  }
+  const isAdmin = !!(adminRes.data as any)?.is_admin;
   return (
     <html lang="en" data-theme={theme} className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
       <body className="font-body min-h-screen flex flex-col">

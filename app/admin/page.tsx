@@ -68,7 +68,7 @@ export default async function Admin() {
           <section className={card}>
             <h2 className="font-semibold">Site look</h2>
             <p className="text-sm text-ink/70">Automatic switches to the Masters look when the tournament name includes &ldquo;Masters&rdquo;. Choose Masters or Classic to preview or override.</p>
-            <ThemeForm tournamentId={active.id} theme={active.theme ?? "auto"} />
+            <ThemeForm tournamentId={active.id} theme={active.theme === "classic" ? "classic" : "masters"} />
           </section>
           <section className={card}>
             <h2 className="font-semibold">Payments</h2>

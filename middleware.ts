@@ -17,9 +17,11 @@ export async function middleware(request: NextRequest) {
       },
     },
   });
+  // getSession reads the cookie and only calls Supabase when the token needs refreshing (fast).
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const path = request.nextUrl.pathname;
   const open = path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/api/sync");
   if (!user && !open) {

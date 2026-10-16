@@ -138,9 +138,8 @@ export function ThemeForm({ tournamentId, theme }: { tournamentId: string; theme
         <label className="text-sm">
           Site look
           <select name="theme" defaultValue={theme} className="block border border-pine/30 rounded px-2 py-2">
-            <option value="auto">Automatic (Masters look for the Masters)</option>
+            <option value="masters">Masters (standard)</option>
             <option value="classic">Classic</option>
-            <option value="masters">Masters</option>
           </select>
         </label>
         <Submit>Save look</Submit>

@@ -1,7 +1,8 @@
+import { cache } from "react";
 import type { Golfer, GolferRound, Round, Tournament } from "./types";
 
 // Loads the active tournament plus its rounds. `db` is a Supabase client scoped to the pga schema.
-export async function getActive(db: any): Promise<{ t: Tournament; rounds: Round[] } | null> {
+export const getActive = cache(async function getActive(db: any): Promise<{ t: Tournament; rounds: Round[] } | null> {
   const { data: t } = await db
     .from("tournaments")
     .select("*")
@@ -12,7 +13,7 @@ export async function getActive(db: any): Promise<{ t: Tournament; rounds: Round
   if (!t) return null;
   const { data: rounds } = await db.from("rounds").select("*").eq("tournament_id", t.id).order("round_no");
   return { t: t as Tournament, rounds: (rounds ?? []) as Round[] };
-}
+});
 
 export async function getField(db: any, tournamentId: string) {
   const { data: golfers } = await db.from("golfers").select("*").eq("tournament_id", tournamentId).order("name");

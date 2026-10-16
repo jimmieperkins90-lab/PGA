@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import AccountForms from "./AccountForms";
 import { signOut } from "./actions";
 
@@ -6,9 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Account() {
   const db = createClient();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  const user = await getUser();
   if (!user) return null; // middleware redirects to /login
   const { data: profile } = await db.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
   return (

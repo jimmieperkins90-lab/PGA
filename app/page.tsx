@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import { fmtLock, getActive } from "@/lib/data";
 import { isLocked } from "@/lib/types";
 import Standings from "./_components/Standings";
@@ -19,9 +19,7 @@ export default async function Home() {
 
   // Nudge the signed-in player if the next open round isn't fully picked.
   let reminder: string | null = null;
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  const user = await getUser();
   const next = rounds.find((r) => !isLocked(r));
   if (user && next && !t.completed_at) {
     const [{ data: entry }, { count }] = await Promise.all([

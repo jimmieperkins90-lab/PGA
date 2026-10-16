@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import { getActive, getField } from "@/lib/data";
 import type { Pick } from "@/lib/types";
 import RosterClient from "./RosterClient";
@@ -8,9 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function RosterPage() {
   const db = createClient();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
+  const user = await getUser();
   if (!user) return null; // middleware redirects to /login
   const active = await getActive(db);
   if (!active) return <p className="text-ink/70">No tournament is active yet. Check back soon.</p>;

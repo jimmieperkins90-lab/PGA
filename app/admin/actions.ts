@@ -153,7 +153,7 @@ export async function setTheme(tournamentId: string, _: Result, fd: FormData): P
   const db = createClient();
   if (!(await requireAdmin(db))) return { error: "Admins only." };
   const theme = String(fd.get("theme") ?? "");
-  if (!["auto", "classic", "masters"].includes(theme)) return { error: "Choose a theme." };
+  if (!["classic", "masters"].includes(theme)) return { error: "Choose a theme." };
   const { error } = await db.from("tournaments").update({ theme }).eq("id", tournamentId);
   if (error) return { error: error.message };
   revalidatePath("/", "layout");
