@@ -1,6 +1,6 @@
 "use client";
 import { useFormState, useFormStatus } from "react-dom";
-import { createTournament, forceSync, setCutRule, setGolferStatus, setLockTimes, setPaymentNote, setTheme } from "./actions";
+import { createTournament, forceSync, setCutRule, setGolferStatus, setLockTimes, setPaymentNote } from "./actions";
 
 type Result = { ok?: string; error?: string };
 const init: Result = {};
@@ -130,21 +130,3 @@ export function PaymentNoteForm({ tournamentId, note }: { tournamentId: string; 
   );
 }
 
-export function ThemeForm({ tournamentId, theme }: { tournamentId: string; theme: string }) {
-  const [s, action] = useFormState(setTheme.bind(null, tournamentId), init);
-  return (
-    <form action={action} className="space-y-2">
-      <div className="flex flex-wrap items-end gap-2">
-        <label className="text-sm">
-          Site look
-          <select name="theme" defaultValue={theme} className="block border border-pine/30 rounded px-2 py-2">
-            <option value="masters">Masters (standard)</option>
-            <option value="classic">Classic</option>
-          </select>
-        </label>
-        <Submit>Save look</Submit>
-      </div>
-      <Note s={s} />
-    </form>
-  );
-}

@@ -1,15 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { createClient, getUser } from "@/lib/supabase/server";
-import { getActive } from "@/lib/data";
 import NavBar from "./_components/NavBar";
-import { brandWords, resolveTheme } from "@/lib/theme";
 
 const serif = Playfair_Display({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-serif", display: "swap" });
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "600"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: "PGA Pool",
@@ -26,21 +23,18 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
   const user = await getUser();
-  // Runs in parallel; getActive is cached so the page reuses it instead of querying again.
-  const [active, adminRes] = await Promise.all([
-    getActive(supabase),
-    user ? supabase.from("profiles").select("is_admin").eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null }),
-  ]);
-  const theme = resolveTheme(active?.t);
-  const [brandA, brandB] = brandWords(theme);
-  const isAdmin = !!(adminRes.data as any)?.is_admin;
+  let isAdmin = false;
+  if (user) {
+    const { data } = await supabase.from("profiles").select("is_admin").eq("user_id", user.id).maybeSingle();
+    isAdmin = !!data?.is_admin;
+  }
   return (
-    <html lang="en" data-theme={theme} className={`${serif.variable} ${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <body className="font-body min-h-screen flex flex-col">
         <header className="bg-pine text-sand border-b-4 border-trim pt-[env(safe-area-inset-top)]">
           <div className="max-w-5xl mx-auto px-4 py-2.5">
             <Link href="/" className="font-display text-xl tracking-wide">
-              {brandA} <span className="text-trim">{brandB}</span>
+              Masters <span className="text-trim">Pool</span>
             </Link>
           </div>
         </header>

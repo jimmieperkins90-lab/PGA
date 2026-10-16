@@ -3,26 +3,25 @@ import type { Golfer, GolferRound, Round, Tournament } from "./types";
 
 // Loads the active tournament plus its rounds. `db` is a Supabase client scoped to the pga schema.
 export const getActive = cache(async function getActive(db: any): Promise<{ t: Tournament; rounds: Round[] } | null> {
-  const { data: t } = await db
+  const { data } = await db
     .from("tournaments")
-    .select("*")
+    .select("*, rounds(*)")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (!t) return null;
-  const { data: rounds } = await db.from("rounds").select("*").eq("tournament_id", t.id).order("round_no");
-  return { t: t as Tournament, rounds: (rounds ?? []) as Round[] };
+  if (!data) return null;
+  const { rounds, ...t } = data;
+  const sorted = ((rounds ?? []) as Round[]).slice().sort((x, y) => x.round_no - y.round_no);
+  return { t: t as Tournament, rounds: sorted };
 });
 
 export async function getField(db: any, tournamentId: string) {
-  const { data: golfers } = await db.from("golfers").select("*").eq("tournament_id", tournamentId).order("name");
-  const ids = (golfers ?? []).map((g: Golfer) => g.id);
-  let scores: GolferRound[] = [];
-  if (ids.length) {
-    const { data } = await db.from("golfer_rounds").select("*").in("golfer_id", ids);
-    scores = (data ?? []) as GolferRound[];
-  }
+  const [{ data: golfers }, { data: rows }] = await Promise.all([
+    db.from("golfers").select("*").eq("tournament_id", tournamentId).order("name"),
+    db.from("golfer_rounds").select("*, golfers!inner(tournament_id)").eq("golfers.tournament_id", tournamentId),
+  ]);
+  const scores = ((rows ?? []) as any[]).map(({ golfers: _g, ...r }) => r) as GolferRound[];
   return { golfers: (golfers ?? []) as Golfer[], scores };
 }
 

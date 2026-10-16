@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient, getUser } from "@/lib/supabase/server";
 import { fmtLock, getActive } from "@/lib/data";
-import { isLocked } from "@/lib/types";
+import { isLocked, type Round, type Tournament } from "@/lib/types";
 import Standings from "./_components/Standings";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,18 @@ export default async function Home() {
     );
   const { t, rounds } = active;
 
+  return (
+    <div>
+      <Suspense fallback={null}>
+        <Reminder t={t} rounds={rounds} />
+      </Suspense>
+      <Standings t={t} rounds={rounds} live />
+    </div>
+  );
+}
+
+async function Reminder({ t, rounds }: { t: Tournament; rounds: Round[] }) {
+  const db = createClient();
   // Nudge the signed-in player if the next open round isn't fully picked.
   let reminder: string | null = null;
   const user = await getUser();
@@ -41,18 +54,14 @@ export default async function Home() {
     }
   }
 
+  if (!reminder) return null;
   return (
-    <div>
-      {reminder && (
-        <Link
-          href="/roster"
-          className="mb-4 flex items-center justify-between gap-3 rounded border border-gold/60 bg-gold/15 px-3 py-3 text-sm font-semibold text-ink"
-        >
-          <span>{reminder}</span>
-          <span className="shrink-0 text-fairway underline">My Roster</span>
-        </Link>
-      )}
-      <Standings t={t} rounds={rounds} live />
-    </div>
+    <Link
+      href="/roster"
+      className="mb-4 flex items-center justify-between gap-3 rounded border border-gold/60 bg-gold/15 px-3 py-3 text-sm font-semibold text-ink"
+    >
+      <span>{reminder}</span>
+      <span className="shrink-0 text-fairway underline">My Roster</span>
+    </Link>
   );
 }

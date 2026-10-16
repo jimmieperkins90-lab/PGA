@@ -3,18 +3,8 @@
 @tailwind utilities;
 
 /* Colors are stored as RGB triplets so Tailwind opacity modifiers (e.g. border-pine/15) keep working. */
+/* Masters look: Augusta green, white board, yellow trim, red for under-par */
 :root {
-  --c-pine: 7 57 31;
-  --c-fairway: 11 93 59;
-  --c-azalea: 214 51 108;
-  --c-sand: 244 235 208;
-  --c-paper: 251 248 238;
-  --c-ink: 21 35 27;
-  --c-gold: 201 162 39;
-  --c-trim: 214 51 108;
-}
-/* Masters theme: Augusta green, white board, yellow trim, red for under-par */
-[data-theme="masters"] {
   --c-pine: 0 71 46;
   --c-fairway: 0 103 71;
   --c-azalea: 200 16 46;

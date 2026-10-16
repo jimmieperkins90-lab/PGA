@@ -58,7 +58,7 @@ export default function RosterClient({
   const usedIn = useMemo(() => new Map(picks.map((p) => [p.golfer_id, p.round_no])), [picks]);
   // Golfers who missed the real cut (or withdrew) but are still in an upcoming lineup of an active entry.
   const outPicks = (r: Round) =>
-    isCut || isLocked(r) || r.round_no <= tournament.cut_after_round
+    isCut || isLocked(r)
       ? []
       : picks.filter((p) => p.round_no === r.round_no && gById.get(p.golfer_id)?.status !== "active" && gById.has(p.golfer_id));
 
@@ -71,7 +71,7 @@ export default function RosterClient({
       const mine = scores.filter((x) => x.golfer_id === g.id && x.round_no < rn && x.to_par !== null);
       return mine.length ? mine.reduce((a, x) => a + (x.to_par as number), 0) : null;
     };
-    const playing = (g: Golfer) => !(rn > tournament.cut_after_round && g.status !== "active");
+    const playing = (g: Golfer) => !(g.status === "wd" || g.status === "dq" || (rn > tournament.cut_after_round && g.status !== "active"));
     const rows = golfers.map((g) => ({ g, t: total(g), p: playing(g) }));
     rows.sort(
       (a, b) =>
@@ -92,7 +92,7 @@ export default function RosterClient({
   const shown = ordered.list.filter((g) => g.name.toLowerCase().includes(q.trim().toLowerCase()));
 
   // Each player's own view of the field: still available, already used by them, or out (missed the real cut / withdrew).
-  const isOut = (g: Golfer) => afterCut && g.status !== "active";
+  const isOut = (g: Golfer) => g.status === "wd" || g.status === "dq" || (afterCut && g.status !== "active");
   const availList = shown.filter((g) => usedIn.get(g.id) === undefined && !isOut(g));
   const usedList = shown.filter((g) => usedIn.get(g.id) !== undefined);
   const outList = shown.filter((g) => usedIn.get(g.id) === undefined && isOut(g));

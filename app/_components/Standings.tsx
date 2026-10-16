@@ -10,11 +10,12 @@ const GRID = "grid grid-cols-[2.75rem_minmax(0,1fr)_3.5rem] sm:grid-cols-[3rem_m
 
 export default async function Standings({ t, rounds, live }: { t: Tournament; rounds: Round[]; live: boolean }) {
   const db = createClient();
-  const [{ data: board }, { data: picks }, { data: isAdmin }, field] = await Promise.all([
+  const [{ data: board }, { data: picks }, { data: isAdmin }, field, { data: pays }] = await Promise.all([
     db.rpc("standings", { p_tournament: t.id }),
     db.from("picks").select("*").eq("tournament_id", t.id),
     db.rpc("is_admin"),
     getField(db, t.id),
+    db.from("payments").select("user_id, paid").eq("tournament_id", t.id),
   ]);
   const rows = (board ?? []) as StandRow[];
   const allPicks = (picks ?? []) as Pick[];
@@ -24,7 +25,6 @@ export default async function Standings({ t, rounds, live }: { t: Tournament; ro
   // Admins see who has not paid yet (row-level security hides this from everyone else).
   const unpaid = new Set<string>();
   if (isAdmin) {
-    const { data: pays } = await db.from("payments").select("user_id, paid").eq("tournament_id", t.id);
     (pays ?? []).forEach((p: any) => !p.paid && unpaid.add(p.user_id));
   }
 

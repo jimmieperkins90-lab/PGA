@@ -17,7 +17,7 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-serif)", "serif"],
         body: ["var(--font-sans)", "sans-serif"],
-        mono: ["var(--font-mono)", "monospace"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
     },
   },
