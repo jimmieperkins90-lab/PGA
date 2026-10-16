@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getActive } from "@/lib/data";
-import { cutRuleText } from "@/lib/format";
+import { cutRuleText, fmtMoney, ordinal } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +101,21 @@ export default async function Rules() {
           <p>{t.payment_note}</p>
         </Card>
       )}
+
+      <Card title="Payouts">
+        {t && (t.payouts ?? []).length > 0 ? (
+          <ul className="divide-y divide-pine/10">
+            {t.payouts.map((amt, i) => (
+              <li key={i} className="flex justify-between py-1.5">
+                <span>{ordinal(i + 1)} place</span>
+                <span className="font-mono font-semibold text-pine">{fmtMoney(Number(amt))}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>TBD. Depends on final pool size.</p>
+        )}
+      </Card>
 
       <Card title="After the tournament">
         <p>Finished tournaments move to <strong>Past</strong>, where you can look back at final standings, picks, and your own results over time.</p>

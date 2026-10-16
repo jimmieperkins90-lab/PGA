@@ -29,3 +29,13 @@ export function cutRuleText(mode: string, value: number, afterRound: number): st
   const next = afterRound === 2 ? "the weekend" : `Round ${afterRound + 1}`;
   return `After Round ${afterRound}, ${who}, plus anyone tied at the line, advance to ${next}. The remaining entries are cut from the tournament.`;
 }
+
+export function fmtMoney(n: number): string {
+  return "$" + (Number.isInteger(n) ? n.toLocaleString("en-US") : n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+}
+
+export function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}

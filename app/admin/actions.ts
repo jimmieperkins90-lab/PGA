@@ -136,6 +136,28 @@ export async function setPaymentNote(tournamentId: string, _: Result, fd: FormDa
   return { ok: note ? "Payment message saved." : "Payment message cleared." };
 }
 
+export async function setPayouts(tournamentId: string, _: Result, fd: FormData): Promise<Result> {
+  const db = createClient();
+  if (!(await requireAdmin(db))) return { error: "Admins only." };
+  const feeRaw = String(fd.get("fee") ?? "").trim();
+  const fee = feeRaw === "" ? null : Number(feeRaw);
+  if (fee !== null && (!Number.isFinite(fee) || fee < 0 || fee > 100000)) return { error: "Enter a valid entry fee." };
+  const amounts = fd.getAll("amount").map((v) => String(v).trim());
+  const payouts: number[] = [];
+  for (const a of amounts) {
+    if (a === "") continue;
+    const n = Number(a);
+    if (!Number.isFinite(n) || n < 0 || n > 10000000) return { error: "Payout amounts must be numbers." };
+    payouts.push(Math.round(n * 100) / 100);
+  }
+  if (payouts.length > 20) return { error: "Up to 20 paid places." };
+  const { error } = await db.from("tournaments").update({ entry_fee: fee, payouts }).eq("id", tournamentId);
+  if (error) return { error: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/rules");
+  return { ok: payouts.length ? "Payouts saved." : "Payouts cleared (Rules will say TBD)." };
+}
+
 export async function setPaid(tournamentId: string, userId: string, paid: boolean): Promise<void> {
   const db = createClient();
   if (!(await requireAdmin(db))) return;

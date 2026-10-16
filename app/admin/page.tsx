@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isoToEtLocal } from "@/lib/time";
 import { setActive, setPaid } from "./actions";
-import { CreateForm, CutForm, LockForm, PaymentNoteForm, StatusForm, SyncForm } from "./forms";
+import { CreateForm, CutForm, LockForm, PaymentNoteForm, PayoutForm, StatusForm, SyncForm } from "./forms";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +64,20 @@ export default async function Admin() {
             <h2 className="font-semibold">Pick lock times: {active.name}</h2>
             <p className="text-sm text-ink/70">Set each round to its first tee time. Picks for that round lock then.</p>
             <LockForm tournamentId={active.id} values={[1, 2, 3, 4].map((n) => isoToEtLocal((rounds ?? []).find((r: any) => r.round_no === n)?.lock_at ?? null))} />
+          </section>
+          <section className={card}>
+            <h2 className="font-semibold">Payouts</h2>
+            <p className="text-sm text-ink/70">
+              Add or remove paid places and set each amount. The Rules page shows this automatically (or &ldquo;TBD&rdquo; if none are set). The pot is the entry fee times the number of entries.
+            </p>
+            <PayoutForm
+              key={`${active.entry_fee}-${(active.payouts ?? []).join(",")}-${payRows.length}`}
+              tournamentId={active.id}
+              fee={active.entry_fee ?? null}
+              payouts={(active.payouts ?? []).map(Number)}
+              entries={payRows.length}
+              paidEntries={payRows.filter((p: any) => p.paid).length}
+            />
           </section>
           <section className={card}>
             <h2 className="font-semibold">Payments</h2>

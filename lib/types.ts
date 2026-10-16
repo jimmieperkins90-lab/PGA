@@ -9,6 +9,8 @@ export type Tournament = {
   cut_value: number;
   cut_applied: boolean;
   payment_note: string | null;
+  entry_fee: number | null;
+  payouts: number[];
   completed_at: string | null;
   theme: "auto" | "classic" | "masters";
   is_active: boolean;
