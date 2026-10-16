@@ -18,8 +18,12 @@ export function fmtRound(r: { to_par: number | null; strokes: number | null; thr
   return r.thru ? `${par} thru ${r.thru}` : par;
 }
 
+// Plain-English description of the admin's cut setting (used on the Rules page).
 export function cutRuleText(mode: string, value: number, afterRound: number): string {
-  if (mode === "off") return "No pool cut.";
-  const who = mode === "percent" ? `the bottom ${value}% of entries` : `the ${value} lowest-scoring ${value === 1 ? "entry" : "entries"}`;
-  return `After Round ${afterRound}, ${who} are cut (ties at the line stay in).`;
+  if (mode === "off") return "There is no cut in this pool. Everyone plays all four rounds.";
+  const who =
+    mode === "percent"
+      ? `the bottom ${value}% of entries (rounded down)`
+      : `the ${value} worst-scoring ${value === 1 ? "entry" : "entries"}`;
+  return `After Round ${afterRound}, ${who} are cut. Anyone tied at the cut line stays in.`;
 }

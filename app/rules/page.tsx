@@ -19,7 +19,9 @@ export default async function Rules() {
   const t = active?.t;
   const picks = t?.picks_per_round ?? [4, 4, 3, 3];
   const cutAfter = t?.cut_after_round ?? 2;
-  const cutText = t ? cutRuleText(t.cut_mode, t.cut_value, t.cut_after_round) : "After Round 2, the lowest-scoring entries are cut.";
+  const cutOn = !t || t.cut_mode !== "off";
+  const cutText = t ? cutRuleText(t.cut_mode, t.cut_value, t.cut_after_round) : "There is no cut set up yet.";
+  const laterRounds = cutAfter + 1 >= 4 ? "Round 4" : `Rounds ${cutAfter + 1}-4`;
 
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
@@ -65,21 +67,22 @@ export default async function Rules() {
 
       <Card title="Scoring">
         <p>
-          A pick earns the golfer&apos;s score to par <em>in the round you used them</em>. If you play a golfer in Round 2 and they shoot
-          -3 that day, you get -3, whatever they shoot on other days.
+          A pick earns the golfer&apos;s score to par <em>in the round you used them</em>. For example: if you play a golfer in
+          Round 2 and they shoot -3 that day, -3 is added to your score, regardless of how that golfer performed the rest of the tournament.
         </p>
         <p>Scores update about once a minute during play and are final when the golfer finishes the round.</p>
       </Card>
 
       <Card title="The cut">
         <p>{cutText}</p>
-        <p>
-          If you&apos;re cut, your score stays where it was after Round {cutAfter} and you can&apos;t make more picks. Everyone tied at the
-          cut line stays in.
-        </p>
+        {cutOn && (
+          <p>
+            If you&apos;re cut, your score stays where it was after Round {cutAfter} and you can&apos;t make more picks.
+          </p>
+        )}
         <p>
           Separately, golfers who miss the real tournament cut (or withdraw) can&apos;t score in the later rounds, so they can&apos;t be
-          picked for Rounds {cutAfter + 1}–4.
+          picked for {laterRounds}.
         </p>
       </Card>
 
